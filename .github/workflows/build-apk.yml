@@ -58,10 +58,24 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 
+      # Secret'a yapıştırırken araya giren satır sonu ve boşluklar temizlenir; anahtar yine de
+      # açılamıyorsa nedeni açıkça yazılır (şifreler ve anahtarın kendisi kayıtlara yazılmaz).
       - name: Decode release keystore
         if: ${{ env.PARSEL_KEYSTORE_BASE64 != '' }}
         working-directory: android/app
-        run: echo "$PARSEL_KEYSTORE_BASE64" | base64 -d > parsel-blok-release.keystore
+        run: |
+          printf '%s' "$PARSEL_KEYSTORE_BASE64" | tr -cd 'A-Za-z0-9+/=' > /tmp/ks.b64
+          echo "Temizlenmiş base64 uzunluğu: $(wc -c < /tmp/ks.b64) karakter (beklenen: 3480)"
+          if ! base64 -d /tmp/ks.b64 > parsel-blok-release.keystore 2>/dev/null; then
+            echo "::error::PARSEL_KEYSTORE_BASE64 çözülemedi. Değer eksik ya da yanlış yapıştırılmış olabilir; dosyadaki uzun satırın tamamını tekrar yapıştır."
+            exit 1
+          fi
+          echo "Keystore boyutu: $(wc -c < parsel-blok-release.keystore) bayt, SHA-256: $(sha256sum parsel-blok-release.keystore | cut -c1-16)…"
+          if ! keytool -list -keystore parsel-blok-release.keystore -storepass "$PARSEL_KEYSTORE_PASSWORD" -alias "$PARSEL_KEY_ALIAS" > /dev/null 2>&1; then
+            echo "::error::Keystore açılamadı: PARSEL_KEYSTORE_PASSWORD ya da PARSEL_KEY_ALIAS yanlış, veya PARSEL_KEYSTORE_BASE64 eksik yapıştırılmış."
+            exit 1
+          fi
+          echo "Keystore ve şifre doğrulandı."
 
       - name: Build signed release AAB + APK
         if: ${{ env.PARSEL_KEYSTORE_BASE64 != '' }}
