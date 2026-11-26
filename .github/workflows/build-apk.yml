@@ -1,0 +1,107 @@
+name: Parsel Blok APK/AAB derle
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: {}
+
+# Release oluşturmak için yazma izni gerekiyor. Derlenen dosyalar repoya commit edilmez.
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PARSEL_KEYSTORE_BASE64: ${{ secrets.PARSEL_KEYSTORE_BASE64 }}
+      PARSEL_KEYSTORE_PASSWORD: ${{ secrets.PARSEL_KEYSTORE_PASSWORD }}
+      PARSEL_KEY_ALIAS: ${{ secrets.PARSEL_KEY_ALIAS }}
+      PARSEL_KEY_PASSWORD: ${{ secrets.PARSEL_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      # package-lock.json sayesinde her derleme aynı paket sürümleriyle yapılır.
+      - name: Install npm dependencies
+        run: npm ci
+
+      # Eksik dosya, JavaScript hatası ya da internete bağımlılık varsa derleme durur.
+      - name: Oyun dosyasını denetle
+        run: node scripts/check-game.mjs
+
+      - name: Sync Capacitor Android project
+        run: npx cap sync android
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: parsel-blok-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - name: Decode release keystore
+        if: ${{ env.PARSEL_KEYSTORE_BASE64 != '' }}
+        working-directory: android/app
+        run: echo "$PARSEL_KEYSTORE_BASE64" | base64 -d > parsel-blok-release.keystore
+
+      - name: Build signed release AAB + APK
+        if: ${{ env.PARSEL_KEYSTORE_BASE64 != '' }}
+        env:
+          PARSEL_KEYSTORE_PATH: parsel-blok-release.keystore
+          PARSEL_VERSION_CODE: ${{ github.run_number }}
+        working-directory: android
+        run: ./gradlew bundleRelease assembleRelease --no-daemon
+
+      - name: Upload signed release artifacts
+        if: ${{ env.PARSEL_KEYSTORE_BASE64 != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: parsel-blok-release
+          path: |
+            android/app/build/outputs/bundle/release/app-release.aab
+            android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+
+      # Yalnızca main dalındaki derleme "son-derleme" adlı GitHub Release'e yüklenir.
+      # Sabit indirme adresi: https://github.com/<kullanıcı>/parsel-blok/releases/tag/son-derleme
+      - name: Son derlemeyi GitHub Releases'e yükle (yalnızca main)
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -e
+          mkdir -p /tmp/rel
+          cp android/app/build/outputs/apk/debug/app-debug.apk /tmp/rel/parsel-blok-debug.apk
+          if [ -f android/app/build/outputs/bundle/release/app-release.aab ]; then
+            cp android/app/build/outputs/bundle/release/app-release.aab /tmp/rel/parsel-blok-release.aab
+            cp android/app/build/outputs/apk/release/app-release.apk /tmp/rel/parsel-blok-release.apk
+            NOT="Play Console'a yüklenecek dosya: parsel-blok-release.aab"
+          else
+            NOT="İmzalama anahtarı (PARSEL_KEYSTORE_*) henüz eklenmediği için yalnızca test APK'sı üretildi."
+          fi
+          gh release delete son-derleme --yes --cleanup-tag || true
+          gh release create son-derleme /tmp/rel/* \
+            --prerelease \
+            --target "$GITHUB_SHA" \
+            --title "Son derleme (versionCode ${{ github.run_number }})" \
+            --notes "main dalının en son otomatik derlemesi. Commit: $GITHUB_SHA. $NOT"

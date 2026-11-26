@@ -1,0 +1,9 @@
+{
+  "appId": "com.parselblok.app",
+  "appName": "Parsel Blok",
+  "webDir": "www",
+  "backgroundColor": "#F6EBDD",
+  "android": {
+    "allowMixedContent": false
+  }
+}

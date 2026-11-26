@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Parsel Blok</title>
+<style>
+@font-face{font-family:'Fredoka';font-style:normal;font-display:swap;font-weight:300 700;src:url(fonts/fredoka-latin-ext-wght-normal.woff2) format('woff2-variations');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Fredoka';font-style:normal;font-display:swap;font-weight:300 700;src:url(fonts/fredoka-latin-wght-normal.woff2) format('woff2-variations');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+</style>
+<style>
+:root{
+  --bg:#F6EBDD; --ink:#3B2418; --card:#FFF8EF; --line:#3B2418;
+  --me:#E8743B; --a:#5B6CF0; --b:#22A38A; --muted:#8A6E5C;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:'Fredoka',system-ui,sans-serif}
+html,body{overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+html .wrap{padding-top:calc(10px + env(safe-area-inset-top,0px));padding-left:calc(12px + env(safe-area-inset-left,0px));padding-right:calc(12px + env(safe-area-inset-right,0px))}
+html .toast{top:calc(14px + env(safe-area-inset-top,0px))}
+body{padding-bottom:84px}
+.wrap{max-width:560px;margin:0 auto;padding:10px 12px}
+.blk{background:var(--card);border:2px solid var(--line);border-radius:14px;box-shadow:0 4px 0 var(--line)}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.logo{font-weight:700;font-size:22px;letter-spacing:.3px;display:flex;align-items:center;gap:6px}
+.logo .cube{width:22px;height:22px;background:var(--me);border:2px solid var(--line);border-radius:6px;box-shadow:0 3px 0 var(--line)}
+.iconbtn{font:inherit;font-weight:600;background:var(--card);border:2px solid var(--line);border-radius:10px;box-shadow:0 3px 0 var(--line);padding:6px 10px;cursor:pointer;color:var(--ink)}
+.iconbtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.stat{padding:6px 8px;text-align:center}
+.stat small{display:block;font-size:11px;color:var(--muted);font-weight:500}
+.stat b{font-size:15px;font-weight:700;white-space:nowrap}
+.dots span{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid var(--line);margin:0 1px;background:#fff;vertical-align:middle}
+.dots span.on{background:var(--me)}
+.mapbox{padding:6px;position:relative;overflow:hidden;background:#BFE3EC}
+svg{display:block;width:100%;height:auto;touch-action:manipulation}
+.hex{cursor:pointer}
+.layers{display:flex;gap:6px;margin:10px 0 8px;overflow-x:auto}
+.chipbtn{font:inherit;font-size:13px;font-weight:600;padding:5px 11px;border:2px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);box-shadow:0 2px 0 var(--line);cursor:pointer;white-space:nowrap}
+.chipbtn.on{background:var(--ink);color:#fff}
+.legend{display:flex;flex-wrap:wrap;gap:8px 12px;font-size:12px;margin:0 2px 10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;border:1.5px solid var(--line);vertical-align:-2px;margin-right:4px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.strip{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.strip>span{font-size:12px;font-weight:500;padding:3px 8px;border:2px solid var(--line);border-radius:999px;background:var(--card)}
+.strip>span.ev{background:#FFE9A8}
+.ih{flex-basis:100%;display:flex;align-items:center;gap:5px;overflow-x:auto;scrollbar-width:thin;padding-bottom:1px}
+.ih b{font-size:12px;white-space:nowrap;margin-right:2px}
+.ih em{font-size:12px;color:var(--muted);font-style:normal;white-space:nowrap}
+.ih button{font:inherit;font-size:12px;font-weight:600;padding:2px 9px;border:2px solid #C2410C;border-radius:999px;background:#FFE1D6;color:var(--ink);cursor:pointer;white-space:nowrap}
+.ih button.on{background:#C2410C;color:#fff}
+.ih button.pahali{opacity:.55}
+.ih i{font-style:normal;font-size:9.5px;font-weight:700;background:#C2410C;color:#fff;border-radius:5px;padding:0 4px;margin-left:3px;vertical-align:1px}
+.note{font-size:12px;color:var(--muted);margin:6px 0}
+.kv{display:flex;justify-content:space-between;font-size:14px;padding:4px 0;border-bottom:1px dashed #D9C6B4}
+.zbtn{display:block;width:100%;margin-top:8px;text-align:left}
+.tab{font:inherit;font-weight:600;font-size:13px;padding:8px 4px;border:2px solid var(--line);border-radius:12px;background:var(--card);box-shadow:0 3px 0 var(--line);cursor:pointer;color:var(--ink);position:relative}
+.tab.on{background:#FFE2C6}
+.tab .badge{position:absolute;top:-7px;right:-5px;background:var(--me);color:#fff;border:2px solid var(--line);border-radius:999px;font-size:10px;padding:0 5px;line-height:15px}
+.panel{padding:12px;min-height:150px}
+.ph{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.ph h3{margin:0;font-size:18px}
+.tag{font-size:12px;font-weight:600;padding:2px 8px;border:2px solid var(--line);border-radius:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:14px;margin-bottom:10px}
+.grid2 div small{display:block;color:var(--muted);font-size:11px}
+.bar{height:12px;border:2px solid var(--line);border-radius:6px;background:#fff;overflow:hidden}
+.bar>div{height:100%}
+.barrow{display:grid;grid-template-columns:52px 1fr 36px;align-items:center;gap:6px;font-size:13px;margin-bottom:6px}
+.warn{background:#FFE1D6;border:2px dashed #C2410C;border-radius:10px;padding:6px 9px;font-size:13px;margin:8px 0}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.btn{font:inherit;font-weight:600;font-size:14px;padding:9px 8px;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--line);cursor:pointer;line-height:1.15}
+.btn small{display:block;font-weight:500;font-size:11px;color:var(--muted)}
+.btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.btn.pri{background:var(--me);color:#fff}
+.btn.pri small{color:#FFE7D6}
+.btn.full{grid-column:1/-1}
+.sub{font-size:12px;color:var(--muted);margin:10px 0 2px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.q{border:2px solid var(--line);border-radius:12px;padding:9px 10px;margin-bottom:8px;background:#fff}
+.q b{display:block}
+.q .m{font-size:12px;color:var(--muted);margin-top:3px;display:flex;justify-content:space-between}
+.log{font-size:13px;line-height:1.35}
+.log div{padding:6px 0;border-bottom:1px dashed #D9C6B4}
+.log div:last-child{border:0}
+.log .d{color:var(--muted);font-size:11px;margin-right:4px}
+.rank{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed #D9C6B4}
+.rank .sw{width:18px;height:18px;border:2px solid var(--line);border-radius:5px}
+.rank .n{flex:1}
+.rank .n small{display:block;color:var(--muted);font-size:11px}
+.endbar{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%)}
+.endbar .btn{display:block;width:100%;max-width:536px;margin:0 auto;font-size:17px;padding:13px;background:var(--ink);color:#fff}
+.toast{position:fixed;left:50%;top:14px;transform:translateX(-50%) translateY(-120%);transition:transform .25s;z-index:50;background:var(--ink);color:#fff;padding:9px 14px;border-radius:12px;font-size:14px;max-width:92vw;text-align:center;border:2px solid #000;white-space:pre-line}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.modal{position:fixed;inset:0;background:rgba(40,25,15,.55);display:none;align-items:center;justify-content:center;z-index:40;padding:16px}
+.modal.show{display:flex}
+.modal .box{max-width:440px;width:100%;padding:18px;max-height:88vh;overflow:auto}
+.modal h2{margin:0 0 8px}
+.modal ul{padding-left:18px;margin:8px 0;font-size:14px;line-height:1.45}
+.empty{color:var(--muted);font-size:14px;text-align:center;padding:28px 6px}
+.kbd{display:none}
+@media (min-width:900px) and (min-height:540px){
+  body{padding-bottom:0}
+  .wrap{max-width:1440px;height:100vh;height:100dvh;padding:10px 16px 12px;display:grid;gap:8px 16px;
+    grid-template-columns:minmax(0,1fr) minmax(400px,540px);
+    grid-template-rows:auto auto minmax(0,1fr) auto auto auto;
+    grid-template-areas:"head hud" "strip tabs" "map panel" "layers panel" "legend panel" "end panel"}
+  header{grid-area:head;margin:0}
+  .hud{grid-area:hud;margin:0}
+  .stat{padding:4px 8px}
+  .strip{grid-area:strip;margin:0;align-self:start}
+  .mapbox{grid-area:map;min-height:0;display:flex;align-items:center;justify-content:center}
+  .mapbox svg{width:100%;height:100%;min-height:0}
+  .layers{grid-area:layers;margin:0}
+  .legend{grid-area:legend;margin:0 2px}
+  .tabs{grid-area:tabs;margin:0;grid-template-columns:repeat(6,1fr);align-self:start}
+  .tab{padding:7px 2px;font-size:12.5px}
+  .panel{grid-area:panel;min-height:0;overflow-y:auto;padding:10px 14px}
+  .ph{margin-bottom:6px}
+  .grid2{gap:3px 10px}
+  .panel .acts{grid-template-columns:repeat(3,1fr);gap:7px;margin-top:6px}
+  .panel .acts [data-a=ekip]{grid-column:auto}
+  .panel .btn{padding:7px 6px;font-size:13.5px}
+  .panel .sub{margin-top:8px}
+  .panel .acts [data-a=altyapi]{grid-column:auto}
+  .warn{margin:6px 0;padding:5px 9px}
+  .grid2{grid-template-columns:repeat(3,1fr);margin-bottom:8px}
+  .bars{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+  .endbar{grid-area:end;position:static;padding:0;background:none}
+  .endbar .btn{max-width:none;padding:11px}
+  .kbd{display:inline;font-size:11px;font-weight:500;opacity:.7;margin-left:6px}
+}
+
+.soyb{font:inherit;font-size:12px;font-weight:600;padding:3px 9px;border:2px solid #7C3AED;border-radius:999px;background:#EDE3FA;color:var(--ink);cursor:pointer}
+.soyb.neg{border-color:#57534E;background:#E7E5E4}
+.auc-big{border:3px solid;border-radius:14px;padding:8px 10px;text-align:center;margin:10px 0 8px;background:#fff}
+.auc-big small{display:block;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.6px}
+.auc-big b{display:block;font-size:28px;line-height:1.15}
+.auc-big span{font-size:13px}
+.auc-riv{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.auc-riv span{font-size:12px;border:2px solid #3B2418;border-radius:999px;padding:2px 8px;background:#fff}
+.auc-log{font-size:12.5px;color:var(--muted);min-height:54px;margin-bottom:4px}
+.auc-log div:first-child{color:var(--ink);font-weight:600}
+.coach{display:none;padding:10px 12px;margin-bottom:10px;font-size:14px;line-height:1.35;background:#FFF3D6}
+.coach.show{display:block}
+.coach .cs{float:right;font-size:11px;font-weight:700;color:var(--muted);margin-left:8px}
+.coach .cb{display:flex;gap:6px;margin-top:8px;justify-content:flex-end}
+.coach .btn{padding:6px 10px;font-size:13px}
+.pulse{outline:3px solid #E8743B;outline-offset:3px;animation:pls 1.1s ease-in-out infinite}
+@keyframes pls{50%{outline-color:rgba(232,116,59,.12)}}
+@media (min-width:900px) and (min-height:540px){
+  .coach{position:fixed;left:16px;bottom:86px;width:400px;z-index:30;margin:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><span class="cube"></span>Parsel Blok</div>
+    <div style="display:flex;gap:6px">
+      <button class="iconbtn" id="helpBtn">?</button>
+      <button class="iconbtn" id="newBtn">Yeni</button>
+    </div>
+  </header>
+
+  <div class="hud">
+    <div class="stat blk"><small>Gün</small><b id="hGun">1/30</b></div>
+    <div class="stat blk"><small>Kasa</small><b id="hPara">0</b></div>
+    <div class="stat blk"><small>Hamle</small><b class="dots" id="hHamle"></b></div>
+    <div class="stat blk"><small>Net değer</small><b id="hNet">0</b></div>
+  </div>
+
+  <div class="strip" id="strip"></div>
+  <div class="coach blk" id="coach"></div>
+
+  <div class="mapbox blk"><svg id="map" viewBox="-238 -212 476 432"></svg></div>
+
+  <div class="layers" id="layers"></div>
+  <div class="legend" id="legend"></div>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="panel blk" id="panel"></div>
+  <div class="endbar"><button class="btn" id="endBtn">Günü Bitir ▶</button></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="modal" id="modal"><div class="box blk" id="modalBox"></div></div>
+
+<script>
+(function(){
+const S=30, SQ=Math.sqrt(3), MAXGUN=30, HAMLE=4, STARTPARA=10000, EKIP=110, FAIZ=0.03, MAAS=300, SECIM=[10,20];
+const DIRS=[[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
+const TER={
+  cayir:{ad:'Çayır',renk:'#CDE7A0',k:'#94B866',m:1,ot:[8,13]},
+  orman:{ad:'Orman',renk:'#8EC27A',k:'#5E8E4C',m:0.9,ot:[11,17]},
+  kiyi:{ad:'Kıyı',renk:'#F3DFA2',k:'#C9AE68',m:1.45,ot:[5,9]},
+  tepe:{ad:'Tepe',renk:'#D8CAB0',k:'#A8977A',m:0.85,ot:[6,10]}
+};
+const ZONE={
+  yok:{ad:'İmarsız',renk:'#D3D0CA',k:'#A29E96'},
+  konut:{ad:'Konut',renk:'#FFD166',k:'#C9A040'},
+  ticari:{ad:'Ticari',renk:'#F29BBE',k:'#BF6A8C'},
+  yesil:{ad:'Yeşil Alan',renk:'#6CC57A',k:'#3F8F4C'}
+};
+const INFRA=[['#ECE6DC','#BDB4A6'],['#C4DCEE','#8DAFC8'],['#82B4DE','#5684AD'],['#4381C2','#2C5D92']];
+const ALLZ=['yok','konut','ticari','yesil'];
+const BLD={
+  ev:{ad:'Ev',ic:'🏠',maliyet:3000,deger:2600,kira:230,zone:['konut'],infra:1,cop:3,pop:2},
+  apartman:{ad:'Apartman',ic:'🏢',maliyet:6500,deger:5600,kira:500,zone:['konut'],infra:2,cop:6,pop:5},
+  kafe:{ad:'Kafe',ic:'☕',maliyet:3600,deger:3000,kira:290,zone:['ticari'],infra:2,cop:5,pop:2},
+  dukkan:{ad:'Dükkan',ic:'🏪',maliyet:5200,deger:4200,kira:420,zone:['ticari'],infra:2,cop:6,pop:2},
+  otel:{ad:'Otel',ic:'🏨',maliyet:9000,deger:7600,kira:640,zone:['ticari'],infra:3,cop:8,pop:3},
+  bahce:{ad:'Bahçe',ic:'🌳',maliyet:700,deger:900,kira:40,zone:ALLZ,infra:0,cop:0,pop:2,tek:true},
+  site:{ad:'Site',ic:'🏘️',maliyet:5500,deger:5200,kira:470,zone:['konut'],infra:2,cop:5,pop:5,mega:1,tek:true},
+  avm:{ad:'AVM',ic:'🏬',maliyet:8000,deger:7000,kira:720,zone:['ticari'],infra:2,cop:9,pop:4,mega:1,tek:true}
+};
+const BORDER=['ev','apartman','kafe','dukkan','otel','bahce'];
+const LM=[1,1.6,2.3];
+const OWN=[
+  {ad:'Sen',renk:'#E8743B',k:'#A8501F'},
+  {ad:'Kaya Yapı',renk:'#5B6CF0',k:'#3743AE',cal:0.85,titiz:1,tarz:'titiz, bakımı aksatmaz'},
+  {ad:'Rahat Emlak',renk:'#22A38A',k:'#147060',cal:0.3,tarz:'bakımı ihmal eder, ihaleye sık düşer'},
+  {ad:'Kelepir Holding',renk:'#9B51C9',k:'#6B2E99',cal:0.55,alim:1.5,insa:0.45,spek:1,tarz:'spekülatör: kelepir toplar, değerlenince satar'},
+  {ad:'Yuva Kooperatif',renk:'#D6336C',k:'#A11D4D',cal:0.75,titiz:1,konut:1,pref:['apartman','ev','bahce'],tarz:'konutçu: ev ve apartman diker'}
+];
+let yeniN=5;
+const ids=()=>st.pl.map((_,i)=>i);
+const oyuncular=()=>OWN.slice(0,st.pl.length);
+const SEKTOR=['Çarşı','Kumsal','Liman','Bahçeli','Yayla','Çamlık'];
+const MEV=[
+  {ad:'İlkbahar',ic:'🌸',ot:1.5,acik:'otlar hızlı büyür'},
+  {ad:'Yaz',ic:'☀️',ot:1,acik:'kıyıda, kafede ve otelde kira artar'},
+  {ad:'Sonbahar',ic:'🍂',ot:0.8,acik:'çöp hızlı birikir'},
+  {ad:'Kış',ic:'❄️',ot:0.3,acik:'ot durur, kıyı kirası düşer'}
+];
+const ZOR={
+  kolay:{ad:'Kolay',acik:'Rakipler sade oynar, bakımı sık aksatır.',cal:0,buy:0.85,den:0.15,akil:0},
+  normal:{ad:'Normal',acik:'Rakipler bina yükseltir, başvuru yapar; titiz olanlar bakım ekibi tutar.',cal:0.08,buy:1,den:0.35,akil:1},
+  zor:{ad:'Zor',acik:'Tüm rakipler ekip tutar, kredi çeker, seçime asılır.',cal:0.15,buy:1.25,den:0.6,akil:2}
+};
+const OZ={
+  manzara:{ad:'Manzaralı',ic:'🌄',iyi:1,v:1.2,k:1.15,acik:'değer +%20, kira +%15'},
+  kaynak:{ad:'Kaynak suyu',ic:'💧',iyi:1,v:1.15,k:1.05,acik:'değer +%15, kira +%5'},
+  hisseli:{ad:'Hisseli tapu',ic:'📜',iyi:0,v:0.7,k:1,acik:'değer −%30'},
+  kaya:{ad:'Kayalık zemin',ic:'🪨',iyi:0,v:0.95,k:1,acik:'inşaat ve yükseltme %40 pahalı'},
+  yolsuz:{ad:'Yola cephesi yok',ic:'🚧',iyi:0,v:0.85,k:0.8,acik:'değer −%15, kira −%20'}
+};
+const ZV={yok:0.85,konut:1.15,ticari:1.35,yesil:0.7};
+const EKS=300;
+const SOY={
+  metro:{ad:'Metro hattı',ic:'🚇',pos:1,v:1.3,k:1.1,acik:'değer +%30, kira +%10, altyapı +1'},
+  avm:{ad:'AVM projesi',ic:'🛍️',pos:1,v:1.12,k:1.3,kf:'tic',acik:'değer +%12, ticari kira +%30'},
+  uni:{ad:'Üniversite kampüsü',ic:'🎓',pos:1,v:1.12,k:1.35,kf:'kon',acik:'değer +%12, konut kirası +%35'},
+  kopru:{ad:'Sahil yolu ve köprü',ic:'🌉',pos:1,v:1.25,k:1.15,sek:['Kumsal','Liman'],acik:'değer +%25, kira +%15'},
+  cop:{ad:'Çöp tesisi',ic:'🏭',pos:0,v:0.78,k:0.85,acik:'değer −%22, kira −%15'}
+};
+const KULIS=400, TEVHID=1000;
+const FXAD={festival:'🎪 Festival',turist:'🧳 Turist akını',canli:'📈 Emlak canlı',durgun:'📉 Durgunluk',grev:'🚛 Çöp grevi'};
+
+const QT=[
+  {id:'p5',ad:'Mahalle sakini ol',acik:'En az 5 parsele sahip ol.',odul:2500,t:()=>mine().length>=5},
+  {id:'dk',ad:'Esnafa destek',acik:'Ticari imarlı bir parselde dükkan aç.',odul:2200,t:()=>mine().some(p=>p.bina==='dukkan')},
+  {id:'ev2',ad:'Konut seferberliği',acik:'En az 2 evin olsun.',odul:2000,t:()=>mine().filter(p=>p.bina==='ev').length>=2},
+  {id:'kb',ad:'Kıyı yeşillensin',acik:'Kıyı parselinde bir bahçe yap.',odul:1600,t:()=>mine().some(p=>p.ter==='kiyi'&&p.bina==='bahce')},
+  {id:'tm',ad:'Temiz mahalle',acik:'En az 3 parselin olsun ve hepsinin durumu %60 üstünde olsun.',odul:1500,t:()=>{const m=mine();return m.length>=3&&m.every(p=>cond(p)>=60)}},
+  {id:'a3',ad:'Tam altyapı',acik:'Altyapısı 3/3 olan bir parselin olsun.',odul:1800,t:()=>mine().some(p=>p.infra>=3)},
+  {id:'ys',ad:'Park projesi',acik:'Yeşil alan imarlı bir parselde bahçe yap.',odul:1400,t:()=>mine().some(p=>p.zone==='yesil'&&p.bina==='bahce')},
+  {id:'k1',ad:'Kira geliri',acik:'Günlük toplam kira gelirin 600₺ ve üstüne çıksın.',odul:2000,t:()=>mine().reduce((s,p)=>s+rent(p),0)>=600},
+  {id:'yk',ad:'Kat çık',acik:'Bir binanı 2. seviyeye yükselt.',odul:1800,t:()=>mine().some(p=>p.bina&&p.lv>=2)},
+  {id:'tr',ad:'Turizm yatırımı',acik:'Bir kafe ya da otel aç.',odul:2200,t:()=>mine().some(p=>p.bina==='kafe'||p.bina==='otel')},
+  {id:'ap',ad:'Toplu konut',acik:'Bir apartman yap.',odul:2400,t:()=>mine().some(p=>p.bina==='apartman')},
+  {id:'kp',ad:'Kelepir avcısı',acik:'Gerçek değeri ödediğin fiyattan en az %30 yüksek bir parsel al.',odul:1800,t:()=>mine().some(p=>p.odenen&&value(p)>=p.odenen*1.3)},
+  {id:'tv',ad:'Büyük proje',acik:'Komşu parsellerini birleştirip bir Site ya da AVM yap.',odul:2600,t:()=>mine().some(p=>p.bina==='site'||p.bina==='avm')},
+  {id:'ih',ad:'İhale ustası',acik:'Bir açık artırmayı kazan.',odul:1500,t:()=>(st.ihWin||0)>0},
+  {id:'bk',ad:'Başkanlık koltuğu',acik:'Sıradaki belediye seçimini kazan.',odul:2500,t:()=>st.bk===0,ok:()=>nextSecim()!==null&&st.bk!==0,son:()=>nextSecim()}
+];
+
+let st, sel=null, layer='arazi', tab='parsel';
+
+/* ---------- yardımcılar ---------- */
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmt=n=>Math.round(n).toLocaleString('tr-TR')+'₺';
+const key=(q,r)=>q+','+r;
+const dist=(q,r)=>(Math.abs(q)+Math.abs(r)+Math.abs(-q-r))/2;
+const px=p=>[S*SQ*(p.q+p.r/2), S*1.5*p.r];
+function nbs(p){return DIRS.map(([dq,dr])=>st.idx[key(p.q+dq,p.r+dr)]).filter(i=>i!==undefined).map(i=>st.ps[i])}
+const cond=p=>100-Math.max(p.ot,p.cop);
+const mine=()=>st.ps.filter(p=>p.own===0);
+const mev=g=>g<=8?0:g<=16?1:g<=23?2:3;
+const fx=(t,sek)=>st.fx.some(f=>f.t===t&&(sek===undefined||f.sek===sek));
+const nextSecim=()=>{for(const d of SECIM) if(st.gun<=d) return d; return null};
+const imarCost=i=>st.bk===i?600:st.bk===null?1200:1800;
+function nbFactor(p){
+  let f=1;
+  for(const n of nbs(p)){
+    if(n.bina && cond(n)>=60) f+=0.035;
+    if(n.bina==='bahce'||n.zone==='yesil') f+=0.03;
+    if(cond(n)<35) f-=0.05;
+  }
+  return clamp(f,0.75,1.4);
+}
+function value(p,gor){ // gor: yalnız dışarıdan görünenlere göre tahmin
+  let v=(900+p.infra*650)*TER[p.ter].m;
+  if(p.bina) v+=BLD[p.bina].deger*LM[p.lv-1]*sin(p);
+  if(!gor){ v*=ZV[p.zone]; if(p.oz) v*=OZ[p.oz].v }
+  v*=(0.65+0.35*cond(p)/100)*nbFactor(p)*etkiV(p);
+  if(st.fx.length){ if(fx('durgun')) v*=0.9; if(fx('canli',sektor(p))) v*=1.15 }
+  return Math.round(v/10)*10;
+}
+function price(p){
+  if(p.ihale) return acilis(p);
+  if(p.ask==null) return Math.round(value(p)/10)*10;
+  return Math.round((0.4*value(p)+0.6*value(p,true))*p.ask/10)*10;
+}
+const grp=p=>p.grp?st.ps.filter(x=>x.grp===p.grp):[p];
+const grpN=p=>p.grp?st.ps.filter(x=>x.grp===p.grp).length:1;
+const sin=p=>p.bina&&BLD[p.bina].mega?1+0.2*(grpN(p)-1):1;
+function leaveGrp(p){ if(!p.grp) return; const g=p.grp; p.grp=null; const r=st.ps.filter(x=>x.grp===g); if(r.length<2) r.forEach(x=>x.grp=null) }
+function etkiV(p){ if(!st.etki) return 1; let v=1; const sk=sektor(p); for(const e of st.etki) if(e.sek===sk) v*=e.v; const r=st.soy.find(r=>r.sek===sk); if(r) v*=SOY[r.t].pos?1.15:0.85; return v }
+function etkiK(p){ if(!st.etki||!st.etki.length) return 1; let k=1; const sk=sektor(p), tic=['kafe','dukkan','otel','avm'].includes(p.bina), kon=['ev','apartman','site'].includes(p.bina);
+  for(const e of st.etki) if(e.sek===sk&&(!e.kf||(e.kf==='tic'&&tic)||(e.kf==='kon'&&kon))) k*=e.k; return k }
+const acilis=p=>Math.round(value(p)*0.5/10)*10;
+const mcost=(p,b)=>grp(p).reduce((t,x)=>t+bcost(x,b),0);
+function tevOk(p,n){ return !!n&&p.own===0&&n.own===0&&!p.bina&&!n.bina&&n.zone===p.zone&&(p.zone==='konut'||p.zone==='ticari')&&!(p.grp&&p.grp===n.grp)&&grpN(p)+grpN(n)<=3 }
+function bolgeNot(p){ const sk=sektor(p), a=st.etki.filter(e=>e.sek===sk).map(e=>SOY[e.t].ic+' '+SOY[e.t].ad), r=st.soy.find(r=>r.sek===sk); let t='';
+  if(a.length) t+='📍 '+sk+': '+a.join(', ')+' etkisi var. ';
+  if(r) t+='🗣️ Söylenti: '+SOY[r.t].ic+' '+SOY[r.t].ad+' — bölgede fiyatlar '+(SOY[r.t].pos?'%15 şişik':'%15 düşük')+'.';
+  return t }
+const zoneKnown=p=>!!(p.bil||p.zk||p.bina||st.bk===0);
+const kayaX=p=>p.oz==='kaya'?1.4:1;
+const bcost=(p,b)=>Math.round(BLD[b].maliyet*kayaX(p)/10)*10;
+const newAsk=()=>Math.round((0.62+Math.random()*0.7)*100)/100;
+function rollZone(d){const r=Math.random();
+  if(d<=1) return r<0.7?'ticari':r<0.93?'konut':'yesil';
+  if(d===2) return r<0.5?'konut':r<0.7?'ticari':r<0.86?'yok':'yesil';
+  if(d===3) return r<0.35?'konut':r<0.45?'ticari':r<0.9?'yok':'yesil';
+  return r<0.22?'konut':r<0.27?'ticari':r<0.95?'yok':'yesil';}
+function rollOz(ter){
+  if(Math.random()>0.32) return null;
+  const w={manzara:(ter==='tepe'||ter==='kiyi')?3:1,kaynak:(ter==='orman'||ter==='tepe')?2:1,hisseli:2,kaya:ter==='tepe'?3:1.2,yolsuz:1.5};
+  let t=Object.values(w).reduce((a,b)=>a+b,0)*Math.random();
+  for(const k in w){t-=w[k];if(t<=0)return k} return 'yolsuz';
+}
+function rent(p){
+  if(!p.bina) return 0;
+  let r=BLD[p.bina].kira*LM[p.lv-1]*(1+0.12*p.infra)*(0.4+0.6*cond(p)/100)*nbFactor(p);
+  const s=mev(st.gun), tur=p.bina==='kafe'||p.bina==='otel', tic=tur||p.bina==='dukkan';
+  if(p.oz) r*=OZ[p.oz].k;
+  r*=sin(p)*etkiK(p);
+  if(p.bina==='otel'&&p.ter==='kiyi') r*=1.3;
+  if(s===1){ if(p.ter==='kiyi') r*=1.4; if(tur) r*=1.25 }
+  if(s===3&&p.ter==='kiyi') r*=0.8;
+  if(st.fx.length){ if(tur&&fx('turist')) r*=1.8; if(tic&&fx('festival',sektor(p))) r*=1.5 }
+  return Math.round(r);
+}
+const landVal=i=>st.ps.filter(p=>p.own===i).reduce((s,p)=>s+value(p),0);
+const net=i=>st.pl[i].para+landVal(i)-st.pl[i].borc;
+const limit=i=>2000+Math.floor(0.4*landVal(i)/500)*500;
+function sektor(p){
+  if(dist(p.q,p.r)<=1) return 'Merkez';
+  const [x,y]=px(p); const a=(Math.atan2(y,x)*180/Math.PI+360+30)%360;
+  return SEKTOR[Math.floor(a/60)];
+}
+const pname=p=>sektor(p)+' · P'+(p.id+1);
+function log(m){st.log.unshift({g:st.gun,m});st.log=st.log.slice(0,50)}
+function canBuild(p,b){
+  const B=BLD[b];
+  if(B.mega){ const g=grp(p); if(g.length<2) return 'Önce komşu parselle birleştir';
+    if(g.some(x=>x.bina)) return 'Grupta bina var';
+    if(g.some(x=>!B.zone.includes(x.zone))) return 'Tüm parseller '+ZONE[B.zone[0]].ad+' imarlı olmalı';
+    if(g.some(x=>x.infra<B.infra)) return 'Altyapı '+B.infra+' gerekli'; return '' }
+  if(p.bina) return 'Zaten bina var';
+  if(!B.zone.includes(p.zone)) return ZONE[p.zone].ad+' imarda olmaz';
+  if(p.zone==='yesil'&&b!=='bahce') return 'Yeşil alanda yalnız bahçe';
+  if(p.infra<B.infra) return 'Altyapı '+B.infra+' gerekli';
+  return '';
+}
+const upCost=p=>Math.round(BLD[p.bina].maliyet*0.6*p.lv*kayaX(p)/10)*10;
+function canUp(p){
+  if(!p.bina) return 'Bina yok';
+  if(BLD[p.bina].tek) return BLD[p.bina].mega?BLD[p.bina].ad+' yükseltilmez':'Bahçe yükseltilemez';
+  if(p.lv>=3) return 'En üst seviye';
+  const need=Math.min(3,BLD[p.bina].infra+p.lv);
+  if(p.infra<need) return 'Altyapı '+need+' gerekli';
+  return '';
+}
+function zoneWhy(p,z,resmi){
+  if(p.zone===z) return 'Mevcut imar';
+  if(!resmi){ if(z==='konut'&&p.infra<1) return 'Altyapı 1 gerekli'; if(z==='ticari'&&p.infra<2) return 'Altyapı 2 gerekli' }
+  if(p.bina&&!BLD[p.bina].zone.includes(z)) return BLD[p.bina].ad+' buna uymaz';
+  if(z==='yesil'&&p.bina&&p.bina!=='bahce') return 'Bina var';
+  return '';
+}
+function infraProject(p){
+  for(const n of [p,...nbs(p)]){ n.infra=Math.min(3,n.infra+1); if(n.zone==='yok'&&n.infra>=1&&!n.bina) n.zone='konut' }
+}
+function denetim(p){
+  if(Math.max(p.ot,p.cop)>=50){ st.pl[p.own].para-=350; log('🔍 Belediye denetimi: '+OWN[p.own].ad+' bakımsızlıktan 350₺ ceza yedi ('+pname(p)+').'); return true }
+  log('🔍 Belediye denetimi temiz çıktı: '+pname(p)); return false;
+}
+function votes(i,noise){
+  let v=8+st.kamp[i]+(i===0?st.done*2:3*ZOR[st.zor].akil);
+  for(const p of st.ps){ if(p.own!==i) continue; const c=cond(p); if(p.bina) v+=BLD[p.bina].pop*p.lv*c/100; if(c>=70) v+=1 }
+  return Math.round(v+(noise?rnd(0,6):0));
+}
+
+/* ---------- yeni oyun ---------- */
+function newGame(zor,n){
+  n=n||5; const R=n>3?5:4;
+  st={v:6,soy:[],etki:[],gid:0,ihWin:0,tut:tutAc()?{s:0,g0:1}:null,R,zor:zor||'normal',gun:1,hamle:HAMLE,pl:OWN.slice(0,n).map(()=>({para:STARTPARA,borc:0})),ps:[],idx:{},q:[],qd:[],log:[],done:0,over:false,
+      fx:[],bk:null,mp:0,kamp:Array(n).fill(0)};
+  let id=0;
+  for(let q=-R;q<=R;q++)for(let r=-R;r<=R;r++){
+    if(Math.abs(-q-r)>R) continue;
+    const d=dist(q,r), dr=Math.round(d*4/R), p={id:id,q,r};
+    const sk=sektor(p);
+    let ter='cayir';
+    if(d>1){
+      if(r===R||(r===R-1&&Math.random()<0.5)) ter='kiyi';
+      else if(Math.random()<((sk==='Çamlık'||sk==='Yayla')?0.45:0.12)) ter='orman';
+      else if(d===R&&r<=-2&&Math.random()<0.55) ter='tepe';
+    }
+    Object.assign(p,{ter,own:null,zone:rollZone(dr),oz:rollOz(ter),ask:newAsk(),bil:false,zk:false,
+      infra:[3,3,2,1,0][dr],bina:null,lv:1,ot:rnd(5,35),cop:rnd(5,30),warn:0,ekip:false,ihale:false});
+    st.idx[key(q,r)]=id; st.ps.push(p); id++;
+  }
+  sel=null; tab='parsel'; auc=null; mq=[];
+  log('Belediye parselleri satışa açtı. Herkes '+fmt(STARTPARA)+' ile başlıyor. '+n+' oyuncu · zorluk: '+ZOR[st.zor].ad+'.');
+  fillQuests();
+}
+
+/* ---------- görevler ---------- */
+function fillQuests(){
+  while(st.q.length<2){
+    const pool=QT.filter(t=>!st.q.some(a=>a.id===t.id)&&!st.qd.includes(t.id)&&!t.t()&&(!t.ok||t.ok()));
+    if(!pool.length) break;
+    const t=pool[rnd(0,pool.length-1)];
+    st.q.push({id:t.id,bitis:t.son?t.son():Math.min(MAXGUN,st.gun+8)});
+    log('Yeni belediye görevi: '+t.ad+' ('+fmt(t.odul)+')');
+  }
+}
+function checkQuests(){
+  st.q=st.q.filter(a=>{
+    const t=QT.find(x=>x.id===a.id);
+    if(t.t()){st.pl[0].para+=t.odul;st.done++;st.qd.push(t.id);log('✅ Görev tamamlandı: '+t.ad+' +'+fmt(t.odul));toast('✅ '+t.ad+' +'+fmt(t.odul));return false}
+    return true;
+  });
+}
+
+/* ---------- oyuncu hamleleri ---------- */
+function act(fn,cost){
+  if(st.over) return;
+  if(st.hamle<1){toast('Hamlen bitti, günü bitir.');return}
+  if(cost && st.pl[0].para<cost){toast('Kasada yeterli para yok.');return}
+  const ok=fn(); if(ok===false) return;
+  st.hamle--; checkQuests(); save(); render();
+}
+function free(fn){ if(st.over) return; if(fn()===false) return; checkQuests(); save(); render() }
+const me=()=>st.pl[0];
+const A={
+  buy(p){if(p.ihale)return;const c=price(p),kapali=!p.bil;act(()=>{me().para-=c;p.own=0;p.ihale=false;p.warn=0;p.bil=true;p.odenen=c;log('Parsel aldın: '+pname(p)+' ('+fmt(c)+')')},c);
+    if(p.own===0&&p.odenen===c){ if(kapali) showDeal(p,c); }},
+  eks(p){if(p.bil)return;act(()=>{me().para-=EKS;p.bil=true;log('🔍 Ekspertiz yaptırdın: '+pname(p)+' → '+ZONE[p.zone].ad+(p.oz?', '+OZ[p.oz].ad:''))},EKS)},
+  bic(p){act(()=>{p.ot=0;st.tutB=1})},
+  topla(p){act(()=>{p.cop=0;st.tutB=1})},
+  build(p,b){const B=BLD[b],c=B.mega?mcost(p,b):bcost(p,b);if(canBuild(p,b))return;act(()=>{me().para-=c;for(const x of (B.mega?grp(p):[p])){x.bina=b;x.lv=1}log(B.ic+' '+B.ad+' yaptın: '+(B.mega?grp(p).map(x=>'P'+(x.id+1)).join(' + '):pname(p)))},c)},
+  ihale(p){if(!p.ihale||p.own!==null||auc)return;const need=Math.max(Math.round(value(p)*0.1/10)*10,acilis(p));if(me().para<need){toast('Teminat ve açılış için kasada en az '+fmt(need)+' olmalı.');return}act(()=>{aucStart(p)})},
+  tev(p,n){if(!tevOk(p,n))return;act(()=>{me().para-=TEVHID;const g=p.grp||n.grp||(++st.gid);p.grp=g;n.grp=g;log('🧩 Parseller birleştirildi (tevhid): '+grp(p).map(x=>'P'+(x.id+1)).join(' + '))},TEVHID)},
+  ifraz(p){if(!p.grp||grp(p).some(x=>x.bina&&BLD[x.bina].mega))return;free(()=>{const g=p.grp;st.ps.forEach(x=>{if(x.grp===g)x.grp=null});log('✂️ Birleşik parsel ayrıldı (ifraz): '+pname(p))})},
+  up(p){if(canUp(p))return;const c=upCost(p);act(()=>{me().para-=c;p.lv++;log('⬆️ '+BLD[p.bina].ad+' '+p.lv+'. seviyeye yükseldi: '+pname(p))},c)},
+  yik(p){if(!p.bina)return;act(()=>{me().para-=300;log('🧨 '+BLD[p.bina].ad+' yıkıldı: '+pname(p));p.bina=null;p.lv=1},300)},
+  altyapi(p){const c=1200+p.infra*800;act(()=>{me().para-=c;p.infra++;log('Altyapı talebin onaylandı: '+pname(p)+' → '+p.infra+'/3')},c)},
+  imar(p,z){if(zoneWhy(p,z))return;const c=imarCost(0);act(()=>{me().para-=c;p.zone=z;log('İmar değişikliği: '+pname(p)+' → '+ZONE[z].ad)},c)},
+  sell(p){const c=Math.round(value(p)*0.95);act(()=>{me().para+=c;leaveGrp(p);p.own=null;p.ekip=false;p.warn=0;p.ask=newAsk();p.odenen=0;log('Parsel sattın: '+pname(p)+' (+'+fmt(c)+')')})},
+  kamp(){if(nextSecim()===null)return;act(()=>{me().para-=500;st.kamp[0]+=4;log('📣 Seçim kampanyası yaptın (+4 oy).')},500)}
+};
+function toggleEkip(p){ // hamle harcamaz
+  p.ekip=!p.ekip; toast(p.ekip?'Bakım ekibi her gün '+fmt(EKIP)+' karşılığı otu ve çöpü temizleyecek.':'Bakım ekibi iptal edildi.');
+  save(); render();
+}
+/* banka — hamle harcamaz */
+function kredi(n){free(()=>{const k=Math.min(n,limit(0)-me().borc);if(k<=0){toast('Kredi limitin doldu.');return false}me().borc+=k;me().para+=k;log('🏦 '+fmt(k)+' kredi çektin.')})}
+function ode(n){free(()=>{const k=Math.min(n,me().borc,me().para);if(k<=0){toast(me().borc?'Kasada para yok.':'Borcun yok.');return false}me().borc-=k;me().para-=k;log('🏦 '+fmt(k)+' borç ödedin.')})}
+/* başkanlık kararları — hamle harcamaz, makam puanı harcar */
+function karar(tip,arg){
+  if(st.bk!==0||sel===null) return; const p=st.ps[sel];
+  free(()=>{
+    if(tip==='alt'){ if(st.mp<3||![p,...nbs(p)].some(n=>n.infra<3)) return false; infraProject(p); st.mp-=3; log('🏛️ Başkan olarak '+sektor(p)+' bölgesine altyapı götürdün.') }
+    else if(tip==='den'){ if(st.mp<1||p.own===null||p.own===0) return false; st.mp--; toast(denetim(p)?'Ceza kesildi: 350₺':'Denetim temiz çıktı.') }
+    else { if(st.mp<1||zoneWhy(p,arg,true)) return false; st.mp--; p.zone=arg; log('🏛️ Başkanlık kararı: '+pname(p)+' → '+ZONE[arg].ad) }
+  });
+}
+
+/* ---------- açık artırma ---------- */
+let auc=null;
+function botMax(i,p){
+  const O=OWN[i], akil=ZOR[st.zor].akil;
+  let f=(O.spek?0.72:0.52)+Math.random()*0.36+0.04*akil; if(O.konut&&p.zone==='konut') f+=0.1;
+  return Math.min(Math.round(value(p)*f/10)*10, st.pl[i].para-500);
+}
+const aucStep=p=>Math.max(50,Math.round(value(p)*0.05/10)*10);
+function aucStart(p){
+  const a0=acilis(p), riv=[];
+  for(let i=1;i<st.pl.length;i++){const mx=botMax(i,p); if(mx>=a0) riv.push({i,mx})}
+  auc={pid:p.id,bid:a0,lead:-1,step:aucStep(p),riv,log:[],bitti:false};
+  if(riv.length){const r=riv[rnd(0,riv.length-1)];auc.lead=r.i;auc.log.unshift(OWN[r.i].ad+' açılış teklifi verdi: '+fmt(a0))}
+  else auc.log.unshift('Açılış bedeli '+fmt(a0)+'. Henüz teklif yok.');
+  log('🔨 Açık artırmaya katıldın: '+pname(p));
+  aucRender();
+}
+function aucBid(k){
+  if(!auc||auc.bitti||auc.lead===0) return;
+  const nb=(auc.lead===-1&&k===0)?auc.bid:auc.bid+auc.step*Math.max(1,k);
+  if(nb>me().para){toast('Kasan bu teklife yetmiyor.');return}
+  auc.bid=nb; auc.lead=0; auc.log.unshift('Sen: '+fmt(nb));
+  const cand=auc.riv.filter(r=>r.mx>=auc.bid+auc.step);
+  if(cand.length){
+    const r=cand[rnd(0,cand.length-1)], j=(Math.random()<0.25&&r.mx>=auc.bid+auc.step*2)?2:1;
+    auc.bid+=auc.step*j; auc.lead=r.i; auc.log.unshift(OWN[r.i].ad+': '+fmt(auc.bid)+(j>1?' 💥 sert çıkış!':''));
+    aucRender();
+  } else aucEnd(0);
+}
+function aucCek(){
+  if(!auc||auc.bitti) return;
+  if(auc.lead>0) return aucEnd(auc.lead);
+  log('🔨 Açık artırmadan çekildin: '+pname(st.ps[auc.pid]));
+  auc=null; closeModal(); save(); render();
+}
+function aucEnd(w){
+  const p=st.ps[auc.pid], c=auc.bid; auc.bitti=true; auc.w=w;
+  st.pl[w].para-=c; p.own=w; p.ihale=false; p.warn=0; p.odenen=c; p.ekip=false; p.ihbos=0;
+  if(w===0){st.ihWin=(st.ihWin||0)+1;log('🔨 İhaleyi kazandın: '+pname(p)+' · '+fmt(c))}
+  else log('🔨 İhaleyi '+OWN[w].ad+' kazandı: '+pname(p)+' · '+fmt(c));
+  checkQuests(); save(); render(); aucRender();
+}
+function aucRender(){
+  const p=st.ps[auc.pid], v=value(p), pr=me().para;
+  const ld=auc.lead===-1?'Teklif yok':auc.lead===0?'Sen':OWN[auc.lead].ad, col=auc.lead>=0?OWN[auc.lead].renk:'#3B2418';
+  let h='<h2>🔨 Açık artırma</h2><p style="margin:0 0 6px;font-size:14px"><b>'+pname(p)+'</b> · '+TER[p.ter].ad+' · '+ZONE[p.zone].ad+(p.bina?' · '+BLD[p.bina].ic+' '+BLD[p.bina].ad:'')+(p.oz?' · '+OZ[p.oz].ic+' '+OZ[p.oz].ad:'')+'</p>'+
+    '<div class="kv"><span>Muhammen bedel</span><b>'+fmt(v)+'</b></div><div class="kv"><span>Teminat (%10, iade edilir)</span><b>'+fmt(Math.round(v*0.1/10)*10)+'</b></div>'+
+    '<div class="auc-big" style="border-color:'+col+'"><small>'+(auc.bitti?'SATILDI!':'GÜNCEL TEKLİF')+'</small><b>'+fmt(auc.bid)+'</b><span style="color:'+col+';font-weight:600">'+ld+'</span><span> · değerin %'+Math.round(auc.bid/v*100)+'’i</span></div>';
+  if(!auc.bitti) h+='<div class="auc-riv">'+(auc.riv.length?auc.riv.map(r=>{const q=auc.bid/r.mx, m=(r.mx<auc.bid+auc.step&&auc.lead!==r.i)?'❌ çekildi':q>0.9?'😰 zorlanıyor':q>0.72?'😐 düşünüyor':'😏 rahat';
+      return '<span style="border-color:'+OWN[r.i].renk+'">'+OWN[r.i].ad+' '+m+'</span>'}).join(''):'<span>Rakip yok — açılış bedeline senin!</span>')+'</div>';
+  h+='<div class="auc-log">'+auc.log.slice(0,4).map(x=>'<div>'+x+'</div>').join('')+'</div>';
+  if(auc.bitti){
+    h+='<div class="note" style="font-size:14px">'+(auc.w===0?'🎉 Parsel senin! Değerinin %'+Math.round(auc.bid/v*100)+'’ine aldın.':'Parseli '+OWN[auc.w].ad+' aldı.')+'</div><button class="btn pri" style="width:100%;margin-top:8px" data-m="ak_ok">Tamam</button>';
+  } else {
+    h+='<div class="acts">';
+    if(auc.lead===-1) h+='<button class="btn pri" data-m="ak_0"'+(pr<auc.bid?' disabled':'')+'>Açılıştan al<small>'+fmt(auc.bid)+'</small></button>';
+    for(const k of [1,2,4]){const nb=auc.bid+auc.step*k; h+='<button class="btn'+(k===1&&auc.lead>0?' pri':'')+'" data-m="ak_'+k+'"'+(pr<nb?' disabled':'')+'>+'+fmt(auc.step*k)+'<small>Teklif: '+fmt(nb)+'</small></button>'}
+    h+='<button class="btn" data-m="ak_cek">🏳️ Çekil<small>'+(auc.lead>0?OWN[auc.lead].ad+' alır':'Teklif vermeden çık')+'</small></button></div>';
+  }
+  modal(h);
+}
+function autoIhale(){
+  for(const p of st.ps){
+    if(!p.ihale||p.own!==null||!(st.gun>(p.ihg||0))) continue;
+    const a0=acilis(p), b=[];
+    for(let i=1;i<st.pl.length;i++){const mx=botMax(i,p); if(mx>=a0) b.push({i,mx})}
+    if(!b.length){ p.ihbos=(p.ihbos||0)+1;
+      if(p.ihbos>=2){p.ihale=false;p.ihbos=0;p.ask=newAsk();log('🔨 İhale iki kez boş geçti, parsel serbest piyasaya döndü: '+pname(p))}
+      else log('🔨 İhaleye teklif çıkmadı: '+pname(p)); continue }
+    b.sort((x,y)=>y.mx-x.mx); const w=b[0], c=b.length>1?Math.min(w.mx,b[1].mx+aucStep(p)):Math.max(a0,Math.min(w.mx,Math.round(value(p)*0.7/10)*10));
+    st.pl[w.i].para-=c; p.own=w.i; p.ihale=false; p.warn=0; p.odenen=c; p.ihbos=0;
+    log('🔨 İhaleyi '+OWN[w.i].ad+' kazandı: '+pname(p)+' · '+fmt(c)+(b.length>1?' ('+b.length+' teklifçi)':''));
+  }
+}
+
+/* ---------- söylentiler ---------- */
+function newRumor(){
+  const ks=Object.keys(SOY), t=ks[rnd(0,ks.length-1)], S0=SOY[t], pool=S0.sek||['Merkez',...SEKTOR], sek=pool[rnd(0,pool.length-1)];
+  st.soy.push({t,sek,bitis:st.gun+rnd(4,6),dogru:Math.random()<(S0.pos?0.55:0.5),ipucu:null});
+  const m='🗣️ Söylenti: '+S0.ic+' '+S0.ad+' '+sek+' bölgesine '+(S0.pos?'geliyormuş! Bölgede fiyatlar şişti.':'kurulacakmış! Bölgede fiyatlar düştü.');
+  log(m); toast(m);
+}
+function resolveRumors(){
+  for(const r of st.soy.filter(r=>r.bitis<=st.gun)){
+    const S0=SOY[r.t], my=st.ps.filter(p=>p.own===0&&sektor(p)===r.sek), once=my.reduce((t,p)=>t+value(p),0);
+    st.soy=st.soy.filter(x=>x!==r);
+    if(r.dogru){ st.etki.push({sek:r.sek,v:S0.v,k:S0.k,kf:S0.kf||null,t:r.t}); if(r.t==='metro') st.ps.forEach(p=>{if(sektor(p)===r.sek)p.infra=Math.min(3,p.infra+1)}) }
+    const fark=my.reduce((t,p)=>t+value(p),0)-once;
+    const bas=r.dogru?(S0.pos?'📰 Söylenti doğru çıktı!':'📰 Kötü haber doğru çıktı'):'📰 Söylenti asılsız çıktı';
+    const msg=S0.ic+' '+S0.ad+(r.dogru?' resmen '+r.sek+' bölgesine '+(S0.pos?'geliyor':'kuruluyor')+': '+S0.acik+'.':' '+r.sek+' bölgesine '+(S0.pos?'gelmiyor':'kurulmuyor')+'. Söylentiyle '+(S0.pos?'şişen':'düşen')+' fiyatlar eski haline döndü.');
+    log(bas+' '+msg);
+    qmodal('<h2>'+bas+'</h2><p style="font-size:14px;margin:0 0 8px">'+msg+'</p>'+(my.length?'<div class="kv"><span>Bölgedeki '+my.length+' parselinin değeri</span><b style="color:'+(fark>=0?'#15803D':'#C2410C')+'">'+(fark>=0?'+':'')+fmt(fark)+'</b></div>':'<div class="note">Bu bölgede parselin yoktu.</div>')+
+      '<button class="btn pri" style="width:100%;margin-top:10px" data-m="close">Tamam</button>');
+  }
+}
+function kulis(){
+  const r=st.soy[0]; if(!r||r.ipucu!==null||st.bk===0) return;
+  act(()=>{me().para-=KULIS; r.ipucu=Math.random()<0.8?r.dogru:!r.dogru; log('🕵️ Kulis: '+SOY[r.t].ad+' söylentisi '+(r.ipucu?'büyük ihtimalle doğru.':'büyük ihtimalle asılsız.'))},KULIS);
+  showRumor();
+}
+function showRumor(){
+  const r=st.soy[0]; if(!r) return; const S0=SOY[r.t], kal=r.bitis-st.gun+1, my=st.ps.filter(p=>p.own===0&&sektor(p)===r.sek).length;
+  let h='<h2>🗣️ Söylenti</h2><p style="font-size:14px;margin:0 0 8px">'+S0.ic+' <b>'+S0.ad+'</b> '+r.sek+' bölgesine '+(S0.pos?'geliyormuş.':'kurulacakmış.')+' Bölge haritada mor kesik çizgiyle işaretli.</p>'+
+    '<div class="kv"><span>Karar</span><b>'+(kal<=1?'Bugün gün sonunda':kal+' gün sonra')+'</b></div>'+
+    '<div class="kv"><span>Doğru çıkarsa</span><b>'+S0.acik+'</b></div>'+
+    '<div class="kv"><span>Şu an bölgedeki fiyatlar</span><b>'+(S0.pos?'%15 şişik':'%15 düşük')+'</b></div>'+
+    '<div class="kv"><span>Bölgedeki parselin</span><b>'+my+'</b></div>';
+  if(st.bk===0) h+='<div class="note" style="font-size:14px">🏛️ Başkan olarak plan senin masanda: söylenti <b>'+(r.dogru?'DOĞRU':'ASILSIZ')+'</b>.</div>';
+  else if(r.ipucu!==null) h+='<div class="note" style="font-size:14px">🕵️ Kulis: büyük ihtimalle <b>'+(r.ipucu?'doğru':'asılsız')+'</b> (%80 güvenilir).</div>';
+  h+='<div class="acts">'+(st.bk!==0&&r.ipucu===null?'<button class="btn" data-m="kulis"'+(st.hamle<1||st.over||me().para<KULIS?' disabled':'')+'>🕵️ Kulis araştır<small>'+fmt(KULIS)+' · 1 hamle · %80 doğru</small></button>':'<span></span>')+'<button class="btn pri" data-m="close">Tamam</button></div>';
+  modal(h);
+}
+
+/* ---------- öğretici ---------- */
+const TUTK='parselBlok_tut';
+function tutAc(){try{return localStorage.getItem(TUTK)!=='1'}catch(e){return true}}
+const TUT=[
+  {m:'👋 Hoş geldin! Önce haritadan <b>satılık bir parsel</b> seç.',ok:()=>sel!==null&&st.ps[sel].own===null,hl:'.mapbox'},
+  {m:'Tapu kapalı: imar durumu ve tapu kaydı gizli. İstersen <b>🔍 Ekspertiz</b> yaptır, istersen şansını dene ve <b>Satın al</b>.',ok:()=>mine().length>0,hl:'#panel .acts'},
+  {m:'Parsel senin! Ot ve çöp her gün artar; %75’i geçerse belediye ceza keser. <b>🌾 Otları biç</b> ya da <b>🧹 bakım ekibi</b> tut.',ok:()=>!!st.tutB||mine().some(p=>p.ekip),hl:'#panel .acts'},
+  {m:'Bina <b>kira</b> getirir. İmarına uygun bir bina yap. İmar uymuyorsa imar başvurusu yap ya da bu adımı atla.',ok:()=>mine().some(p=>p.bina),hl:'#panel'},
+  {m:'Hamlelerin bitince <b>Günü Bitir</b>: kira gelir, rakipler oynar.',ok:()=>st.gun>st.tut.g0,hl:'#endBtn'},
+  {m:'Son olarak: <b>🔨 İhale</b> satırında bakımsız parseller açık artırmaya düşer, <b>🗣️ söylentiler</b> bölge değerini uçurabilir, komşu parsellerini <b>🧩 birleştirip</b> Site ya da AVM yapabilirsin. 10. gün sonunda seçim var. Bol kazanç!',ok:()=>false,hl:'#strip',son:1}
+];
+function renderCoach(){
+  const c=document.getElementById('coach'); document.querySelectorAll('.pulse').forEach(e=>e.classList.remove('pulse'));
+  if(!st||!st.tut||st.over){c.classList.remove('show');return}
+  while(st.tut.s<TUT.length-1&&TUT[st.tut.s].ok()) st.tut.s++;
+  const T=TUT[st.tut.s];
+  c.innerHTML='<span class="cs">🎓 '+(st.tut.s+1)+'/'+TUT.length+'</span>'+T.m+'<div class="cb">'+(T.son?'<button class="btn pri" data-c="end">Bitir</button>':'<button class="btn" data-c="skip">Atla</button><button class="btn" data-c="end">Öğreticiyi kapat</button>')+'</div>';
+  c.classList.add('show'); const t=document.querySelector(T.hl); if(t) t.classList.add('pulse');
+}
+
+/* ---------- rakipler ---------- */
+function botTurn(i){
+  const pl=st.pl[i], Z=ZOR[st.zor], akil=Z.akil, cal=Math.min(0.97,OWN[i].cal+Z.cal), own=st.ps.filter(p=>p.own===i);
+  const O=OWN[i], ekipci=akil>=2||(akil>=1&&O.titiz);
+  for(const p of own){
+    if(ekipci&&p.bina&&!p.ekip&&rent(p)>EKIP*1.5) p.ekip=true;
+    if(!p.ekip && Math.max(p.ot,p.cop)>=45 && Math.random()<cal){p.ot=0;p.cop=0}
+  }
+  for(const p of own){
+    if(p.bina){
+      if(akil>=1&&!canUp(p)&&pl.para>=upCost(p)+1500&&Math.random()<0.3){pl.para-=upCost(p);p.lv++;log(OWN[i].ad+' '+BLD[p.bina].ad.toLowerCase()+' yükseltti: '+pname(p))}
+      continue;
+    }
+    for(const b of O.pref||['otel','apartman','dukkan','kafe','ev','bahce']){
+      if(b==='bahce'&&p.zone!=='yesil'&&Math.random()<0.8) continue;
+      if(!canBuild(p,b) && pl.para>=bcost(p,b)+300 && Math.random()<(akil?0.95:0.7)*(O.insa||1)){
+        pl.para-=bcost(p,b); p.bina=b; p.lv=1; log(OWN[i].ad+' '+BLD[b].ad.toLowerCase()+' yaptı: '+pname(p)); break;
+      }
+    }
+  }
+  if(akil>=1&&pl.para>=5000){
+    const e=own.find(p=>!p.bina&&(p.infra<1||p.zone==='yok'));
+    if(e){ if(e.infra<1){pl.para-=1200;e.infra=1} else {pl.para-=imarCost(i);e.zone='konut'} }
+  }
+  if(akil>=2){
+    const kt=own.reduce((s,p)=>s+rent(p),0);
+    if(pl.borc===0&&pl.para<2000&&kt>=300){const k=Math.min(4000,limit(i));pl.borc+=k;pl.para+=k;log(OWN[i].ad+' bankadan kredi çekti.')}
+    else if(pl.borc>0&&pl.para>=pl.borc+4000){pl.para-=pl.borc;pl.borc=0}
+  }
+  const ns=nextSecim();
+  if(ns!==null&&ns-st.gun<=3&&pl.para>=2000&&Math.random()<0.35+0.25*akil){pl.para-=500;st.kamp[i]+=4;log('📣 '+OWN[i].ad+' seçim kampanyası yaptı.')}
+  if(st.bk===i){
+    if(st.mp>=3){
+      const c=own.filter(p=>p.infra<3).sort((a,b)=>nbs(b).filter(n=>n.own===i).length-nbs(a).filter(n=>n.own===i).length)[0];
+      if(c){infraProject(c);st.mp-=3;log('🏛️ Başkan '+OWN[i].ad+', '+sektor(c)+' bölgesine altyapı götürdü.')}
+    } else if(st.mp>=1){
+      const t=st.ps.filter(p=>p.own!==null&&p.own!==i&&Math.max(p.ot,p.cop)>=50).sort((a,b)=>(a.own===0?0:1)-(b.own===0?0:1))[0];
+      if(t&&Math.random()<Z.den){ if(t.own===0) toast('🔍 Başkan '+OWN[i].ad+' parselini denetledi: 350₺ ceza!'); denetim(t); st.mp-- }
+      else { const e=own.find(p=>!p.bina&&p.zone==='yok'); if(e){e.zone=e.infra>=2?'ticari':'konut';e.zk=true;st.mp--;log('🏛️ Başkan '+OWN[i].ad+' kendi parselinin imarını değiştirdi: '+pname(e))} }
+    }
+  }
+  if(O.spek){ // spekülatör: değerlenen boş arsayı kârla satar
+    const k=own.find(p=>!p.bina&&p.odenen&&value(p)>=p.odenen*1.35);
+    if(k&&Math.random()<0.6){const c=Math.round(value(k)*0.95);pl.para+=c;log('💰 '+O.ad+' parseli kârla sattı: '+pname(k)+' ('+fmt(k.odenen)+' → '+fmt(c)+')');
+      k.own=null;k.ekip=false;k.warn=0;k.odenen=0;k.ask=newAsk()}
+  }
+  if(Math.random()<(own.length<3?0.8:0.45)*Z.buy*(O.alim||1)){
+    const hazir=p=>akil&&((p.zone==='konut'&&p.infra>=1)||(p.zone==='ticari'&&p.infra>=2&&!O.konut))?4:0;
+    const firsat=p=>(akil||O.spek)?clamp((value(p)/price(p)-1)*(O.spek?14:8),-8,8):0; // akıllı rakip ekspertiz yaptırır
+    const soyB=p=>{const r=st.soy.find(r=>r.sek===sektor(p)); if(!r) return 0; const pos=SOY[r.t].pos; if(st.bk===i) return (r.dogru===!!pos)?5:-5; return (pos?1:-1)*(O.spek?4:1.5)};
+    const sc=p=>p.infra*2+TER[p.ter].m*2+hazir(p)+firsat(p)+soyB(p)+Math.random()*3;
+    const eks=akil?EKS:0;
+    const bos=akil&&!O.spek&&own.some(p=>!p.bina&&hazir(p));
+    const fr=bos?[]:st.ps.filter(p=>p.own===null && !p.ihale && price(p)+eks<=pl.para-800).sort((a,b)=>sc(b)-sc(a));
+    const p=fr[0];
+    if(p){const c=price(p);pl.para-=c+eks;p.own=i;p.ihale=false;p.warn=0;p.odenen=c;log(OWN[i].ad+' parsel aldı: '+pname(p))}
+  }
+}
+
+/* ---------- olaylar ---------- */
+function randomEvent(){
+  const sk=SEKTOR[rnd(0,5)], g=st.gun, add=(t,gun,sek)=>{ if(fx(t)) return false; st.fx.push({t,sek,bitis:g+gun}); return true };
+  const E=[
+    ()=>{st.ps.filter(p=>sektor(p)===sk).forEach(p=>{p.cop=clamp(p.cop+30,0,100);p.ot=clamp(p.ot+10,0,100)});return '🌪️ Fırtına '+sk+' bölgesini vurdu: her yer çöp ve dal dolu!'},
+    ()=>{st.ps.filter(p=>p.ter==='kiyi').forEach(p=>{p.cop=clamp(p.cop+35,0,100);if(p.own!==null&&p.bina&&p.bina!=='bahce'&&p.infra<2)st.pl[p.own].para-=250});return '🌊 Sel: kıyı parsellerini çöp bastı, altyapısı zayıf binalar 250₺ hasar gördü.'},
+    ()=>add('festival',3,sk)&&'🎪 '+sk+' bölgesinde 3 günlük festival: dükkan, kafe ve otel kiraları %50 fazla.',
+    ()=>add('turist',3)&&'🧳 Turist akını: 3 gün boyunca kafe ve otel kiraları %80 fazla.',
+    ()=>add('canli',4,sk)&&'📈 '+sk+' bölgesinde emlak canlandı: 4 gün boyunca değerler %15 yukarıda.',
+    ()=>add('durgun',3)&&'📉 Piyasada durgunluk: 3 gün boyunca tüm parsel değerleri %10 düşük.',
+    ()=>add('grev',2)&&'🚛 Temizlik işçileri grevde: 2 gün boyunca çöp iki kat hızlı birikiyor.',
+    ()=>{let n=0;st.ps.forEach(p=>{if(p.own!==null&&cond(p)>=70){st.pl[p.own].para+=150;if(p.own===0)n++}});return '🎁 Belediye bakımlı parsellere 150₺ teşvik dağıttı'+(n?' (sana '+fmt(n*150)+').':'.')}
+  ];
+  const m=E[rnd(0,E.length-1)](); if(m){log(m);toast(m)}
+}
+function election(){
+  const v=ids().map(i=>votes(i,true)), mx=Math.max(...v), top=ids().filter(i=>v[i]===mx), w=top[rnd(0,top.length-1)];
+  st.bk=w; st.mp=2; st.kamp=ids().map(()=>0);
+  log('🗳️ Seçim sonucu: '+(w===0?'Belediye başkanı SEN oldun!':'Yeni belediye başkanı '+OWN[w].ad+'.')+' ('+v.map((x,i)=>OWN[i].ad+' '+x).join(' · ')+' oy)');
+  return {v,w};
+}
+
+/* ---------- gün sonu ---------- */
+function endTurn(){
+  if(st.over) return;
+  if(auc){ if(!auc.bitti&&auc.lead>0) aucEnd(auc.lead); auc=null; closeModal() }
+  autoIhale();
+  for(let i=1;i<st.pl.length;i++) botTurn(i);
+  const s=mev(st.gun), grev=fx('grev');
+  let kira=0, ekip=0, faiz=0, sec=null;
+  for(const p of st.ps){
+    p.ot=clamp(p.ot+Math.round(rnd(...TER[p.ter].ot)*MEV[s].ot)+(p.bina==='bahce'?4:0),0,100);
+    let c=rnd(2,5)+(p.bina?BLD[p.bina].cop:0)+(p.zone==='ticari'?2:0)+(s===2?3:0)+(s===1&&p.ter==='kiyi'?2:0);
+    if(grev) c*=2;
+    p.cop=clamp(p.cop+c,0,100);
+    if(p.own===null){ if(p.ot>60)p.ot=rnd(20,35); if(p.cop>55)p.cop=rnd(15,30); continue }
+    if(p.ekip){
+      if(st.pl[p.own].para>=EKIP){st.pl[p.own].para-=EKIP;p.ot=0;p.cop=0;if(p.own===0)ekip+=EKIP}
+      else{p.ekip=false;if(p.own===0)log('Para yetmedi, bakım ekibi iptal: '+pname(p))}
+    }
+    const r=rent(p); st.pl[p.own].para+=r; if(p.own===0)kira+=r;
+  }
+  if(st.bk!==null){ st.pl[st.bk].para+=MAAS; st.mp=Math.min(6,st.mp+1) }
+  st.pl.forEach((pl,i)=>{ if(pl.borc>0){const f=Math.ceil(pl.borc*FAIZ);pl.para-=f;if(i===0)faiz=f} });
+  for(const p of st.ps){
+    if(p.own===null) continue;
+    if(Math.max(p.ot,p.cop)>=75){
+      p.warn++;
+      const who=OWN[p.own].ad;
+      if(p.warn===1){ if(p.own===0)log('⚠️ Belediye uyarısı: '+pname(p)+' bakımsız!') }
+      else if(p.warn===2){ st.pl[p.own].para-=400; log('💸 '+who+' bakımsızlık cezası yedi (400₺): '+pname(p)) }
+      else{
+        const v=Math.round(value(p)*0.5); st.pl[p.own].para+=v;
+        log('🔨 Belediye el koydu ve ihaleye çıkardı: '+pname(p)+' ('+who+')');
+        toast(p.own===0?'🔨 '+pname(p)+' elinden alındı ve ihaleye çıktı!':'🔨 İhaleye düştü: '+pname(p)+' ('+who+') · açılış değerin yarısı, açık artırmaya bugün ilk sen katılabilirsin!');
+        leaveGrp(p);
+        p.own=null;p.warn=0;p.ekip=false;p.ihale=true;p.bil=true;p.ot=20;p.cop=20;p.ihg=st.gun;
+      }
+    } else p.warn=0;
+  }
+  // seçilmiş başkan yokken meclis kendi kendine karar alır
+  if(st.bk===null){
+    if(st.gun%3===0){
+      const c=st.ps.filter(p=>p.infra<3);
+      if(c.length){const p=c[rnd(0,c.length-1)];infraProject(p);log('🏛️ Belediye meclisi '+sektor(p)+' bölgesine yol, su ve elektrik götürdü.')}
+    }
+    if(st.gun%5===0){
+      const c=st.ps.filter(p=>p.zone==='konut'&&p.infra>=2&&!p.bina);
+      if(c.length){const p=c[rnd(0,c.length-1)];p.zone='ticari';p.zk=true;log('🏛️ İmar planı: '+pname(p)+' ticari alana çevrildi.')}
+    }
+  }
+  if(st.gun>=3&&st.gun<MAXGUN&&Math.random()<0.3) randomEvent();
+  resolveRumors();
+  if(st.gun>=2&&st.gun<=MAXGUN-6&&!st.soy.length&&Math.random()<0.4) newRumor();
+  st.pl.forEach((pl,i)=>{ if(pl.para<0){ if(i===0)log('🏦 Kasan eksiye düştü: '+fmt(-pl.para)+' kredi borcuna eklendi.'); pl.borc+=-pl.para; pl.para=0 } });
+  if(SECIM.includes(st.gun)) sec=election();
+  checkQuests();
+  st.q=st.q.filter(a=>{ if(a.bitis<=st.gun){log('⌛ Görev süresi doldu: '+QT.find(t=>t.id===a.id).ad);st.qd.push(a.id);return false} return true });
+  let msg='Kira +'+fmt(kira); if(ekip) msg+=' · Bakım −'+fmt(ekip); if(faiz) msg+=' · Faiz −'+fmt(faiz); if(st.bk===0) msg+=' · Maaş +'+fmt(MAAS);
+  if(st.gun>=MAXGUN){st.over=true;st.hamle=0;toast('Son gün · '+msg);save();render();showEnd();return}
+  st.gun++; st.hamle=HAMLE;
+  st.fx=st.fx.filter(f=>f.bitis>=st.gun);
+  if(mev(st.gun)!==s){const M2=MEV[mev(st.gun)];log(M2.ic+' '+M2.ad+' geldi: '+M2.acik+'.');toast(M2.ic+' '+M2.ad+' geldi: '+M2.acik+'.')}
+  fillQuests();
+  toast('Gün '+st.gun+' · '+msg);
+  save(); render();
+  if(sec) showElection(sec);
+}
+
+/* ---------- çizim ---------- */
+function hexPts(cx,cy,s){let a=[];for(let i=0;i<6;i++){const t=Math.PI/180*(60*i-30);a.push((cx+s*Math.cos(t)).toFixed(1)+','+(cy+s*Math.sin(t)).toFixed(1))}return a.join(' ')}
+function colors(p){
+  if(layer==='imar') return zoneKnown(p)?[ZONE[p.zone].renk,ZONE[p.zone].k]:['#EAE4DA','#BDB4A6'];
+  if(layer==='altyapi') return INFRA[p.infra];
+  if(layer==='sahip') return p.own===null?['#EFE7DA','#BFB3A2']:[OWN[p.own].renk,OWN[p.own].k];
+  return [TER[p.ter].renk,TER[p.ter].k];
+}
+function renderMap(){
+  let out='', top='', br=''; const rs=st.soy&&st.soy[0];
+  const order=[...st.ps].sort((a,b)=>a.r-b.r||a.q-b.q);
+  for(const p of order){
+    const [x,y]=px(p), [c,k]=colors(p), isSel=sel===p.id, lift=isSel?-5:0;
+    let g='<g class="hex" data-id="'+p.id+'" transform="translate(0,'+lift+')">';
+    g+='<polygon points="'+hexPts(x,y+5,S-1.2)+'" fill="'+k+'" stroke="#3B2418" stroke-width="1.6"/>';
+    g+='<polygon points="'+hexPts(x,y,S-1.2)+'" fill="'+c+'" stroke="#3B2418" stroke-width="1.6"/>';
+    if(rs&&sektor(p)===rs.sek) g+='<polygon points="'+hexPts(x,y,S-3.2)+'" fill="'+(SOY[rs.t].pos?'rgba(155,81,201,.13)':'rgba(87,83,78,.16)')+'" stroke="#7C3AED" stroke-width="1.6" stroke-dasharray="3 3"/>';
+    if(p.own!==null && layer!=='sahip') g+='<polygon points="'+hexPts(x,y,S-6.5)+'" fill="none" stroke="'+OWN[p.own].renk+'" stroke-width="4"/>';
+    if(layer==='imar'&&!zoneKnown(p)) g+='<text x="'+x+'" y="'+(y+6)+'" font-size="16" font-weight="700" fill="#A29E96" text-anchor="middle">?</text>';
+    if(p.own===null&&p.bil&&!p.ihale) g+='<text x="'+(x-12)+'" y="'+(y-8)+'" font-size="10" text-anchor="middle">🔍</text>';
+    if(p.ihale && p.own===null) g+='<polygon points="'+hexPts(x,y,S-5.5)+'" fill="none" stroke="#C2410C" stroke-width="3" stroke-dasharray="5 4"/><text x="'+x+'" y="'+(y-11)+'" font-size="11" text-anchor="middle">🔨</text>';
+    if(p.bina){
+      g+='<text x="'+x+'" y="'+(y+6)+'" font-size="18" text-anchor="middle">'+BLD[p.bina].ic+'</text>';
+      if(p.lv>1) g+='<text x="'+x+'" y="'+(y+18)+'" font-size="9" font-weight="700" fill="#3B2418" stroke="#fff" stroke-width="2.5" paint-order="stroke" text-anchor="middle">'+'★'.repeat(p.lv-1)+'</text>';
+    }
+    if(p.own!==null){
+      if(p.warn>0) g+='<text x="'+(x+12)+'" y="'+(y-8)+'" font-size="11" text-anchor="middle">⚠️</text>';
+      else if(p.ot>=60) g+='<text x="'+(x+12)+'" y="'+(y-8)+'" font-size="11" text-anchor="middle">🌾</text>';
+      else if(p.cop>=60) g+='<text x="'+(x+12)+'" y="'+(y-8)+'" font-size="11" text-anchor="middle">🗑️</text>';
+      if(p.ekip) g+='<text x="'+(x-12)+'" y="'+(y-8)+'" font-size="10" text-anchor="middle">🧹</text>';
+    }
+    if(isSel) g+='<polygon points="'+hexPts(x,y,S-1.2)+'" fill="none" stroke="#fff" stroke-width="3.5"/><polygon points="'+hexPts(x,y,S+1)+'" fill="none" stroke="#3B2418" stroke-width="2"/>';
+    g+='</g>';
+    if(isSel) top=g; else out+=g;
+  }
+  const R=st.R||4, hw=Math.ceil(S*SQ*(R+0.5)+3), ht=Math.ceil(S*1.5*R+S+2), m=document.getElementById('map');
+  m.setAttribute('viewBox',(-hw)+' '+(-ht)+' '+(2*hw)+' '+(2*ht+8));
+  for(const p of st.ps){ if(!p.grp) continue; for(const n of nbs(p)){ if(n.grp!==p.grp||n.id<p.id) continue;
+    const [x1,y1]=px(p),[x2,y2]=px(n),mx=(x1+x2)/2,my=(y1+y2)/2,L=Math.hypot(x2-x1,y2-y1),ux=(x2-x1)/L*S*0.42,uy=(y2-y1)/L*S*0.42,col=p.own!==null?OWN[p.own].renk:'#3B2418';
+    const ln=(w,c)=>'<line x1="'+(mx-ux).toFixed(1)+'" y1="'+(my-uy).toFixed(1)+'" x2="'+(mx+ux).toFixed(1)+'" y2="'+(my+uy).toFixed(1)+'" stroke="'+c+'" stroke-width="'+w+'" stroke-linecap="round"/>';
+    br+=ln(9,'#3B2418')+ln(5.5,col) } }
+  m.innerHTML=out+br+top;
+}
+function renderLayers(){
+  const L=[['arazi','Arazi'],['sahip','Sahipler'],['imar','İmar'],['altyapi','Altyapı']];
+  document.getElementById('layers').innerHTML=L.map(([k,a])=>'<button class="chipbtn'+(layer===k?' on':'')+'" data-l="'+k+'">'+a+'</button>').join('');
+  let lg='';
+  if(layer==='arazi') lg=Object.values(TER).map(t=>'<span><i style="background:'+t.renk+'"></i>'+t.ad+'</span>').join('')+oyuncular().map(o=>'<span><i style="background:transparent;border:3px solid '+o.renk+'"></i>'+o.ad+'</span>').join('');
+  if(layer==='sahip') lg=oyuncular().map(o=>'<span><i style="background:'+o.renk+'"></i>'+o.ad+'</span>').join('')+'<span><i style="background:#EFE7DA"></i>Satılık</span>';
+  if(layer==='imar') lg=Object.values(ZONE).map(z=>'<span><i style="background:'+z.renk+'"></i>'+z.ad+'</span>').join('')+'<span><i style="background:#EAE4DA"></i>? Bilinmiyor</span>';
+  if(layer==='altyapi') lg=INFRA.map((c,i)=>'<span><i style="background:'+c[0]+'"></i>'+i+'/3</span>').join('');
+  document.getElementById('legend').innerHTML=lg;
+}
+function renderHud(){
+  const M2=MEV[mev(st.gun)];
+  document.getElementById('hGun').textContent=M2.ic+' '+st.gun+'/'+MAXGUN;
+  document.getElementById('hPara').textContent=fmt(me().para);
+  document.getElementById('hNet').textContent=fmt(net(0));
+  document.getElementById('hHamle').innerHTML=Array.from({length:HAMLE},(_,i)=>'<span class="'+(i<st.hamle?'on':'')+'"></span>').join('');
+  const eb=document.getElementById('endBtn');
+  eb.innerHTML=(st.over?'Sonuçları Gör 🏆':(st.gun===MAXGUN?'Son Günü Bitir 🏁':'Günü Bitir ▶'))+'<span class="kbd">Boşluk</span>';
+  let s='<span>'+M2.ic+' '+M2.ad+': '+M2.acik+'</span>';
+  s+='<span>🏛️ '+(st.bk===null?'Meclis yönetiyor':'Başkan: '+OWN[st.bk].ad)+'</span>';
+  const ns=nextSecim(); if(ns!==null) s+='<span>🗳️ Seçim: gün '+ns+' sonu</span>';
+  for(const f of st.fx) s+='<span class="ev">'+FXAD[f.t]+(f.sek?' · '+f.sek:'')+' ('+(f.bitis-st.gun+1)+' gün)</span>';
+  if(me().borc>0) s+='<span>🏦 Borç '+fmt(me().borc)+'</span>';
+  for(const r of st.soy){const S0=SOY[r.t];s+='<button class="soyb'+(S0.pos?'':' neg')+'" data-soy="1">🗣️ '+S0.ic+' '+S0.ad+' → '+r.sek+'? ('+(r.bitis-st.gun+1)+' gün)</button>'}
+  for(const e of st.etki) s+='<span>✅ '+SOY[e.t].ic+' '+e.sek+'</span>';
+  const ih=st.ps.filter(p=>p.ihale&&p.own===null).sort((a,b)=>(b.ihg||0)-(a.ihg||0)||price(a)-price(b));
+  s+='<div class="ih"><b>🔨 İhale'+(ih.length?' ('+ih.length+')':'')+'</b>'+(ih.length?ih.map(p=>'<button data-ih="'+p.id+'" class="'+(sel===p.id?'on ':'')+(me().para<price(p)?'pahali':'')+'" title="'+TER[p.ter].ad+' · '+ZONE[p.zone].ad+(p.oz?' · '+OZ[p.oz].ad:'')+'">'+pname(p)+' · açılış '+fmt(price(p))+(st.gun-(p.ihg||0)<=1&&p.ihg?'<i>YENİ</i>':'')+'</button>').join(''):'<em>Şu an ihalede parsel yok. Bakımsız kalan parseller buraya düşer.</em>')+'</div>';
+  document.getElementById('strip').innerHTML=s;
+}
+function renderTabs(){
+  const T=[['parsel','Parsel'],['belediye','Belediye'],['banka','Banka'],['gorev','Görevler'],['bulten','Bülten'],['sira','Sıralama']];
+  document.getElementById('tabs').innerHTML=T.map(([k,a])=>'<button class="tab'+(tab===k?' on':'')+'" data-t="'+k+'">'+a+
+    (k==='gorev'&&st.q.length?'<span class="badge">'+st.q.length+'</span>':'')+(k==='belediye'&&st.bk===0&&st.mp>0?'<span class="badge">'+st.mp+'</span>':'')+'</button>').join('');
+}
+function bar(label,v,col,txt){return '<div class="barrow"><span>'+label+'</span><div class="bar"><div style="width:'+v+'%;background:'+col+'"></div></div><b>'+(txt===undefined?'%'+v:txt)+'</b></div>'}
+function btn(lbl,sub,act,dis,cls){return '<button class="btn '+(cls||'')+'" data-a="'+act+'"'+(dis?' disabled':'')+'>'+lbl+(sub?'<small>'+sub+'</small>':'')+'</button>'}
+function pollBars(v){const t=v.reduce((a,b)=>a+b,0)||1;return v.map((x,i)=>'<div class="barrow" style="grid-template-columns:86px 1fr 36px"><span>'+OWN[i].ad+'</span><div class="bar"><div style="width:'+Math.round(x/t*100)+'%;background:'+OWN[i].renk+'"></div></div><b>%'+Math.round(x/t*100)+'</b></div>').join('')}
+function renderPanel(){
+  const el=document.getElementById('panel'), pr=me().para, h=st.hamle>0&&!st.over;
+  if(tab==='gorev'){
+    el.innerHTML='<div class="sub" style="margin-top:0">Belediye görevleri</div>'+(st.q.length?st.q.map(a=>{const t=QT.find(x=>x.id===a.id);return '<div class="q"><b>'+t.ad+'</b>'+t.acik+'<div class="m"><span>Ödül: '+fmt(t.odul)+'</span><span>Son gün: '+a.bitis+'</span></div></div>'}).join(''):'<div class="empty">Şu an açık görev yok.</div>')+'<div class="note">Tamamlanan görev: '+st.done+' · her biri seçimde +2 oy</div>';
+    return;
+  }
+  if(tab==='bulten'){
+    el.innerHTML='<div class="sub" style="margin-top:0">Belediye bülteni</div><div class="log">'+st.log.map(l=>'<div><span class="d">Gün '+l.g+'</span>'+l.m+'</div>').join('')+'</div>';
+    return;
+  }
+  if(tab==='sira'){
+    const rows=oyuncular().map((o,i)=>({o,i,n:net(i),c:st.ps.filter(p=>p.own===i).length,k:st.ps.filter(p=>p.own===i).reduce((s,p)=>s+rent(p),0)})).sort((a,b)=>b.n-a.n);
+    el.innerHTML='<div class="sub" style="margin-top:0">Net değer sıralaması · '+ZOR[st.zor].ad+'</div>'+rows.map((r,j)=>'<div class="rank"><b>'+(j+1)+'.</b><span class="sw" style="background:'+r.o.renk+'"></span><div class="n"><b>'+r.o.ad+(st.bk===r.i?' 🏛️':'')+'</b><small>'+r.c+' parsel · kira '+fmt(r.k)+'/gün · kasa '+fmt(st.pl[r.i].para)+(st.pl[r.i].borc?' · borç '+fmt(st.pl[r.i].borc):'')+'</small></div><b>'+fmt(r.n)+'</b></div>').join('');
+    return;
+  }
+  if(tab==='banka'){
+    const b=me().borc, L=limit(0), kal=Math.max(0,L-b);
+    el.innerHTML='<div class="sub" style="margin-top:0">Banka</div>'+
+      '<div class="kv"><span>Borç</span><b>'+fmt(b)+'</b></div><div class="kv"><span>Kredi limiti</span><b>'+fmt(L)+'</b></div>'+
+      '<div class="kv"><span>Günlük faiz (%'+(FAIZ*100)+')</span><b>'+fmt(Math.ceil(b*FAIZ))+'</b></div>'+
+      '<div class="acts">'+btn('+1.000₺ çek','Hamle harcamaz','kr_1000',st.over||kal<=0)+btn('+5.000₺ çek','Kalan limit '+fmt(kal),'kr_5000',st.over||kal<=0)+
+      btn('1.000₺ öde','','od_1000',st.over||!b||pr<=0)+btn('Tümünü öde',fmt(Math.min(b,pr)),'od_all',st.over||!b||pr<=0)+'</div>'+
+      '<div class="note">Limitin parsellerinin değerine göre artar. Faiz her gün sonunda kasandan düşer; kasan eksiye inerse fark borcuna eklenir. Oyun sonunda borç net değerinden düşülür.</div>';
+    return;
+  }
+  if(tab==='belediye'){
+    const ns=nextSecim(), sp=sel===null?null:st.ps[sel];
+    let s='<div class="sub" style="margin-top:0">Belediye</div>'+
+      '<div class="kv"><span>Başkan</span><b>'+(st.bk===null?'Yok — meclis yönetiyor':OWN[st.bk].ad)+'</b></div>'+
+      '<div class="kv"><span>Sıradaki seçim</span><b>'+(ns===null?'Seçim kalmadı':'Gün '+ns+' sonu ('+(ns-st.gun+1)+' gün)')+'</b></div>';
+    if(ns!==null){
+      s+='<div class="sub">Seçim anketi</div>'+pollBars(ids().map(i=>votes(i,false)))+
+        '<div class="note">Oy; bakımlı parsel, bina (apartman en çok), tamamlanan görev ve kampanyadan gelir.</div>'+
+        '<div class="acts">'+btn('📣 Kampanya yap','500₺ · +4 oy · 1 hamle','kamp',!h||pr<500,'full')+'</div>';
+    }
+    if(st.bk===0){
+      s+='<div class="sub">Başkanlık kararları</div><div class="kv"><span>Makam puanı (günde +1)</span><b>'+'●'.repeat(st.mp)+'○'.repeat(6-st.mp)+'</b></div>'+
+        '<div class="kv"><span>Seçili parsel</span><b>'+(sp?pname(sp):'Haritadan seç')+'</b></div><div class="acts">'+
+        btn('🚧 Altyapı götür','3 puan · parsel + komşuları','md_alt',st.over||!sp||st.mp<3||![sp,...nbs(sp)].some(n=>n.infra<3))+
+        btn('🔍 Denetle',sp&&(sp.own===null||sp.own===0)?'Rakip parseli seç':'1 puan · bakımsızsa 350₺ ceza','md_den',st.over||!sp||st.mp<1||sp.own===null||sp.own===0);
+      for(const z of ['konut','ticari','yesil']){const why=sp?zoneWhy(sp,z,true):'';s+=btn('📐 '+ZONE[z].ad,why||'1 puan · imar kararı','md_z_'+z,st.over||!sp||st.mp<1||!!why)}
+      s+='</div><div class="note">Kararlar hamle harcamaz. Maaşın '+fmt(MAAS)+'/gün, imar başvuruların yarı fiyat ve <b>tüm parsellerin imar durumunu görürsün</b>.</div>';
+    } else if(st.bk!==null){
+      s+='<div class="note">Başkan rakip olduğu için imar başvuruların %50 pahalı. Bakımsız parsellerini denetleyip ceza kesebilir.</div>';
+    } else s+='<div class="note">Seçilen başkan altyapı ve imar kararlarını kendi verir, rakipleri denetler ve günlük '+fmt(MAAS)+' maaş alır.</div>';
+    el.innerHTML=s; return;
+  }
+  if(sel===null){el.innerHTML='<div class="empty">Haritadan bir parsel seç.<br>Satın al, geliştir, bakımını yap.</div>';return}
+  const p=st.ps[sel], T=TER[p.ter], Z=ZONE[p.zone], zk=zoneKnown(p), ok=!!p.bil;
+  let s='<div class="ph"><h3>'+pname(p)+'</h3><span class="tag" style="background:'+T.renk+'">'+T.ad+'</span>'+
+    (ok?(p.oz?'<span class="tag" style="background:'+(OZ[p.oz].iyi?'#D7F2C9':'#FFE1D6')+'" title="'+OZ[p.oz].acik+'">'+OZ[p.oz].ic+' '+OZ[p.oz].ad+'</span>':''):'<span class="tag" style="background:#EAE4DA">❓ Tapu kapalı</span>')+
+    (p.own!==null?'<span class="tag" style="background:'+OWN[p.own].renk+';color:#fff">'+OWN[p.own].ad+'</span>':'<span class="tag" style="background:#fff">'+(p.ihale?'🔨 İhalede':'Satılık')+'</span>')+'</div>';
+  s+='<div class="grid2"><div><small>İmar</small>'+(zk?Z.ad:'❓ Bilinmiyor')+'</div><div><small>Altyapı</small>'+'●'.repeat(p.infra)+'○'.repeat(3-p.infra)+'</div>'+
+    '<div><small>Yapı</small>'+(p.bina?BLD[p.bina].ic+' '+BLD[p.bina].ad+(BLD[p.bina].mega?' · '+grpN(p)+' parsel':BLD[p.bina].tek?'':' · seviye '+p.lv+'/3'):(p.grp?'🧩 Birleşik arsa':'Boş arsa'))+'</div><div><small>Komşu etkisi</small>'+(nbFactor(p)>=1?'+':'')+Math.round((nbFactor(p)-1)*100)+'%</div>'+
+    '<div><small>'+(ok?'Piyasa değeri':'Gerçek değer')+'</small><b>'+(ok?fmt(value(p)):'❓')+'</b></div><div><small>Günlük kira</small><b>'+fmt(rent(p))+'</b></div></div>';
+  s+='<div class="bars">'+bar('🌾 Ot',p.ot,p.ot>=75?'#D9480F':p.ot>=50?'#F2A541':'#7DBE5A')+bar('🗑️ Çöp',p.cop,p.cop>=75?'#D9480F':p.cop>=50?'#F2A541':'#8B9BB4')+'</div>';
+  const bz=bolgeNot(p); if(bz) s+='<div class="note">'+bz+'</div>';
+  if(p.own!==null && p.warn>0) s+='<div class="warn">⚠️ Belediye uyarısı ('+p.warn+'/3). '+(p.warn===1?'Bir gün daha bakımsız kalırsa 400₺ ceza.':'Bir gün daha bakımsız kalırsa parsel el konulup ihaleye çıkar!')+'</div>';
+  else if(p.own===0 && Math.max(p.ot,p.cop)>=60) s+='<div class="warn">Ot veya çöp %75’i geçerse belediye uyarı verir.</div>';
+  if(p.own===null){
+    const c2=price(p);
+    if(p.ihale){ const tem=Math.round(value(p)*0.1/10)*10, need=Math.max(tem,c2);
+      s+='<div class="note">🔨 Bu parsel <b>açık artırmada</b>. Muhammen bedel '+fmt(value(p))+', açılış '+fmt(c2)+'. Rakipler de teklif verecek; katılmazsan gün sonunda kendi aralarında ihaleyi kapatırlar.</div>';
+      s+='<div class="acts">'+btn('🔨 Açık artırmaya katıl','Açılış '+fmt(c2)+' · teminat '+fmt(tem)+' · 1 hamle','ihale',!h||pr<need,'pri full')+'</div>';
+    } else {
+    if(ok&&!p.ihale){const r=value(p)/c2;s+='<div class="note">'+(r>=1.15?'🎉 <b>Kelepir!</b> Gerçek değeri fiyatından %'+Math.round((r-1)*100)+' yüksek.':r<=0.87?'😬 <b>Pahalı!</b> Fiyatı gerçek değerinden %'+Math.round((1/r-1)*100)+' yüksek.':'🤝 Fiyatı makul.')+(p.oz?' '+OZ[p.oz].ic+' '+OZ[p.oz].acik+'.':'')+'</div>'}
+    else if(!ok) s+='<div class="note">İmar durumu ve tapu kaydı gizli; fiyat pazarlıkla belirlenmiş. Kelepir de çıkabilir, kazık da. Almadan önce ekspertiz yaptırabilirsin.</div>';
+    s+='<div class="acts">'+btn('Satın al',fmt(c2)+(p.ihale?' · ihale %20 indirim':'')+' · 1 hamle','buy',!h||pr<c2,'pri'+(ok?' full':''))+(ok?'':btn('🔍 Ekspertiz',fmt(EKS)+' · 1 hamle · her şeyi gösterir','eks',!h||pr<EKS))+'</div>';
+    }
+  } else if(p.own===0){
+    s+='<div class="sub">Bakım</div><div class="acts">'+
+      btn('🌾 Otları biç','Ücretsiz · 1 hamle','bic',!h||p.ot===0)+btn('🗑️ Çöpü topla','Ücretsiz · 1 hamle','topla',!h||p.cop===0)+
+      btn(p.ekip?'🧹 Ekibi iptal et':'🧹 Bakım ekibi tut',fmt(EKIP)+'/gün · otomatik temizlik','ekip',st.over,'full')+'</div>';
+    s+='<div class="sub">Geliştir</div><div class="acts">';
+    if(p.bina){
+      const why=canUp(p);
+      s+=btn('⬆️ Yükselt',why||(fmt(upCost(p))+' · kira +%'+Math.round((LM[p.lv]/LM[p.lv-1]-1)*100)),'up',!h||!!why||pr<upCost(p))+btn('🧨 Yık','300₺ · arsa boşalır','yik',!h||pr<300);
+    } else {
+      if(p.grp) for(const b of ['site','avm'].filter(b=>BLD[b].zone.includes(p.zone))){const why=canBuild(p,b),bc=mcost(p,b);s+=btn(BLD[b].ic+' '+BLD[b].ad,why||(fmt(bc)+' · '+grpN(p)+' parsel · kira +%'+Math.round((0.2*(grpN(p)-1))*100)),'b_'+b,!h||!!why||pr<bc,'pri')}
+      const izin=BORDER.filter(b=>BLD[b].zone.includes(p.zone)&&(p.zone!=='yesil'||b==='bahce'));
+      for(const b of izin){const why=canBuild(p,b),bc=bcost(p,b);s+=btn(BLD[b].ic+' '+BLD[b].ad,why||(fmt(bc)+' · kira '+BLD[b].kira+'₺+'),'b_'+b,!h||!!why||pr<bc)}
+      if(izin.length===1) s+='<div class="note" style="grid-column:1/-1;margin:0">'+(p.zone==='yesil'?'Yeşil alanda yalnız bahçe yapılır.':'Ev ya da dükkan için önce konut veya ticari imar başvurusu yap.')+'</div>';
+    }
+    const ac=1200+p.infra*800;
+    s+=btn('🔌 Altyapı talebi',p.infra>=3?'Tamamlandı':fmt(ac)+' · 1 hamle','altyapi',!h||p.infra>=3||pr<ac,p.bina?'':'full')+'</div>';
+    const tn=nbs(p).filter(n=>tevOk(p,n));
+    if(p.grp||tn.length){
+      const meg=grp(p).some(x=>x.bina&&BLD[x.bina].mega);
+      s+='<div class="sub">Birleştirme (tevhid)</div>'+(p.grp?'<div class="note" style="margin:2px 0 0">🧩 '+grpN(p)+' parsel birleşik: '+grp(p).map(x=>'P'+(x.id+1)).join(' + ')+'. '+(meg?'':'Boşken Site ya da AVM yapabilirsin; parsel sayısı arttıkça kira ve değer artar.')+'</div>':'<div class="note" style="margin:2px 0 0">Aynı imarlı boş komşu parselinle birleştirirsen Site ya da AVM yapabilirsin.</div>')+'<div class="acts">';
+      for(const n of tn.slice(0,3)) s+=btn('🧩 P'+(n.id+1)+' ile birleştir',fmt(TEVHID)+' · 1 hamle','tev_'+n.id,!h||pr<TEVHID);
+      if(p.grp) s+=btn('✂️ Ayır (ifraz)',meg?'Site/AVM varken ayrılmaz':'Hamle harcamaz','ifraz',st.over||meg);
+      s+='</div>';
+    }
+    const ic=imarCost(0);
+    s+='<div class="sub">İmar başvurusu · '+fmt(ic)+'</div><div class="acts">';
+    for(const z of ['konut','ticari','yesil']){const why=zoneWhy(p,z);s+=btn(ZONE[z].ad,why||(z==='yesil'?'Komşuların değerini artırır':'1 hamle'),'z_'+z,!h||!!why||pr<ic)}
+    s+=btn('💰 Parseli sat',fmt(value(p)*0.95)+(p.grp?' · birleşimden çıkar':'')+' · 1 hamle','sell',!h)+'</div>';
+  } else {
+    s+='<div class="empty" style="padding:10px">Bu parsel '+OWN[p.own].ad+' firmasına ait. Bakımsız kalırsa belediye ihaleye çıkarabilir — fırsat kolla.'+(st.bk===0?'<br>Başkan olarak Belediye sekmesinden denetleyebilirsin.':'')+'</div>';
+  }
+  el.innerHTML=s;
+}
+function render(){renderHud();renderMap();renderLayers();renderTabs();renderPanel();renderCoach()}
+
+/* ---------- arayüz olayları ---------- */
+document.getElementById('map').addEventListener('click',e=>{
+  const g=e.target.closest('.hex'); if(!g) return;
+  const id=+g.dataset.id;
+  if(tab==='belediye'&&st.bk===0) sel=id; else { sel=(sel===id?null:id); tab='parsel' }
+  render();
+});
+document.getElementById('strip').addEventListener('click',e=>{if(e.target.closest('[data-soy]'))return showRumor();const b=e.target.closest('[data-ih]');if(b){sel=+b.dataset.ih;tab='parsel';render()}});
+document.getElementById('layers').addEventListener('click',e=>{const b=e.target.closest('[data-l]');if(b){layer=b.dataset.l;render()}});
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(b){tab=b.dataset.t;render()}});
+document.getElementById('panel').addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]'); if(!b||b.disabled) return;
+  const a=b.dataset.a;
+  if(a==='kamp') return A.kamp();
+  if(a.startsWith('kr_')) return kredi(+a.slice(3));
+  if(a==='od_all') return ode(Infinity);
+  if(a.startsWith('od_')) return ode(+a.slice(3));
+  if(a.startsWith('md_z_')) return karar('imar',a.slice(5));
+  if(a.startsWith('md_')) return karar(a.slice(3));
+  if(sel===null) return;
+  const p=st.ps[sel];
+  if(p.own!==((a==='buy'||a==='eks'||a==='ihale')?null:0)) return;
+  if(a.startsWith('tev_')) return A.tev(p,st.ps[+a.slice(4)]);
+  if(a==='ekip') return toggleEkip(p);
+  if(a.startsWith('b_')) return A.build(p,a.slice(2));
+  if(a.startsWith('z_')) return A.imar(p,a.slice(2));
+  if(A[a]) A[a](p);
+});
+document.getElementById('coach').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b||!st||!st.tut)return;
+  if(b.dataset.c==='skip') st.tut.s++; else { st.tut=null; try{localStorage.setItem(TUTK,'1')}catch(x){} }
+  save(); render()});
+document.getElementById('endBtn').addEventListener('click',()=>{ if(!st) return; if(st.over) showEnd(); else endTurn() });
+document.getElementById('helpBtn').addEventListener('click',showHelp);
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  const open=M.classList.contains('show');
+  if(e.key==='Escape'){ if(open&&st){ if(auc&&!auc.bitti) return; auc=null; closeModal() } return }
+  if(open||!st) return;
+  if(e.code==='Space'){ e.preventDefault(); document.getElementById('endBtn').click(); return }
+  const L=['arazi','sahip','imar','altyapi'][+e.key-1]; if(L){layer=L;render()}
+});
+document.getElementById('newBtn').addEventListener('click',()=>showStart(!!st));
+const M=document.getElementById('modal');
+M.addEventListener('click',e=>{
+  const b=e.target.closest('[data-m]'); if(!b){ if(e.target===M&&st&&!(auc&&!auc.bitti)){auc=null;closeModal()} return }
+  const m=b.dataset.m;
+  if(m.startsWith('ak_')){ const k=m.slice(3); if(k==='cek') return aucCek(); if(k==='ok'){auc=null;closeModal();return} return aucBid(+k) }
+  if(m==='kulis') return kulis();
+  if(m==='tut'){ if(st){st.tut={s:0,g0:st.gun};save();closeModal();render()} return }
+  if(m==='new') return showStart(!!st);
+  if(m==='help') return showHelp();
+  if(m.startsWith('n_')){yeniN=+m.slice(2);return showStart(!!st)}
+  if(m.startsWith('zor_')){newGame(m.slice(4),yeniN);save();render()}
+  closeModal();
+});
+let mq=[];
+function modal(h){document.getElementById('modalBox').innerHTML=h;M.classList.add('show')}
+function qmodal(h){ if(M.classList.contains('show')) mq.push(h); else modal(h) }
+function closeModal(){M.classList.remove('show'); if(mq.length) modal(mq.shift())}
+function showStart(iptal){
+  modal('<h2>Yeni oyun</h2><p style="margin:0 0 8px;font-size:14px">Herkes '+fmt(STARTPARA)+' ile başlar.'+(iptal?' Mevcut oyunun silinir.':'')+'</p>'+
+    '<div class="sub" style="margin:0 0 6px">Oyuncu sayısı</div><div style="display:flex;gap:6px">'+
+    [3,5].map(n=>'<button class="chipbtn'+(yeniN===n?' on':'')+'" data-m="n_'+n+'">'+n+' oyuncu<span style="font-weight:500;opacity:.75"> · '+(n>3?'91':'61')+' parsel</span></button>').join('')+'</div>'+
+    '<div class="sub" style="margin:12px 0 0">Zorluk</div>'+
+    Object.entries(ZOR).map(([k,z])=>'<button class="btn zbtn'+(k==='normal'?' pri':'')+'" data-m="zor_'+k+'">'+z.ad+'<small>'+z.acik+'</small></button>').join('')+
+    '<div class="acts"><button class="btn" data-m="help">Nasıl oynanır?</button>'+(iptal?'<button class="btn" data-m="close">Vazgeç</button>':'<span></span>')+'</div>');
+}
+function showHelp(){
+  modal('<h2>Nasıl oynanır?</h2><ul>'+
+  '<li>Oyun <b>'+MAXGUN+' gün</b> sürer; en yüksek <b>net değer</b> (kasa + parseller − borç) kazanır.</li>'+
+  '<li><b>Rakipler:</b> '+OWN.slice(1,st?st.pl.length:5).map(o=>'<b style="color:'+o.renk+'">'+o.ad+'</b> ('+o.tarz+')').join(', ')+'.</li>'+
+  '<li>Her gün <b>'+HAMLE+' hamlen</b> var: parsel almak, biçmek, çöp toplamak, inşaat, yükseltme, başvuru, kampanya ve satış birer hamledir.</li>'+
+  '<li>Ot ve çöp her gün artar. %75’i geçerse belediye <b>uyarır → ceza keser → el koyup ihaleye çıkarır</b>. Kendin temizle ya da günlük ücretle <b>bakım ekibi</b> tut.</li>'+
+  '<li><b>Binalar:</b> ev ve apartman konutta; kafe, dükkan ve otel ticaride kurulur. Her bina 3 seviyeye kadar <b>yükseltilir</b>. Otel kıyıda daha çok kazanır.</li>'+
+  '<li><b>Mevsimler:</b> ilkbaharda ot hızlı büyür, yazın turizm kirayı artırır, sonbaharda çöp birikir, kışın ot durur. Fırtına, festival, sel gibi <b>olaylar</b> araya girer.</li>'+
+  '<li><b>Seçim:</b> 10. ve 20. gün sonunda belediye başkanı seçilir. Başkan altyapı ve imar kararı verir, rakipleri denetler, maaş alır.</li>'+
+  '<li><b>Banka:</b> parsellerini teminat gösterip kredi çekebilirsin; günlük %'+(FAIZ*100)+' faiz işler.</li>'+
+  '<li><b>Gizli tapu:</b> satılık parsellerin imar durumu ve tapu kaydı gizli, fiyatlar pazarlıkla belirlenmiş. Kelepir de kapabilirsin, kazık da yiyebilirsin. '+fmt(EKS)+'’ye <b>ekspertiz</b> yaptırırsan almadan önce her şeyi görürsün. İhaledeki parseller ve başkan için imar planı açıktır.</li>'+
+  '<li><b>İhale:</b> bakımsızlıktan el konulan parseller <b>🔨 İhale</b> satırına düşer. Açılış değerin yarısıdır; <b>açık artırmaya</b> katılıp rakiplerle tur tur teklif verirsin. Katılmazsan gün sonunda rakipler kendi aralarında kapatır.</li>'+
+  '<li><b>Söylentiler:</b> 🗣️ metro, AVM, üniversite, çöp tesisi… söylentisi çıkınca bölge fiyatları şişer ya da düşer. Karar günü doğru çıkarsa etki kalıcı olur, asılsızsa söner. '+fmt(KULIS)+'’ye kulis araştırması yaptırabilirsin; başkan doğrusunu bilir.</li>'+
+  '<li><b>Birleştirme:</b> aynı imarlı boş komşu parsellerini 🧩 birleştir (en fazla 3), Site ya da AVM yap; parsel sayısı arttıkça kira ve değer artar.</li>'+
+  '<li><b>Bilgisayarda:</b> Boşluk tuşu günü bitirir, 1-4 tuşları harita katmanlarını değiştirir.</li>'+
+  '<li>Değer ve kira <b>komşu parsellere</b> de bağlıdır: bakımsız komşu düşürür, bahçe ve yeşil alan artırır.</li>'+
+  '</ul>'+(st?'<button class="btn" style="width:100%;margin-bottom:8px" data-m="tut">🎓 Öğreticiyi baştan başlat</button>':'')+'<button class="btn pri full" style="width:100%" data-m="'+(st?'close':'new')+'">'+(st?'Tamam':'Oyuna başla')+'</button>');
+}
+function showDeal(p,c){
+  const v=value(p),r=v/c,t=r>=1.15?'🎉 Kelepir!':r<=0.87?'😬 Kazık yedin!':'🤝 Makul bir alım';
+  modal('<h2>'+t+'</h2><p style="font-size:14px;margin:0 0 6px">Tapu açıldı: <b>'+pname(p)+'</b></p>'+
+    '<div class="kv"><span>İmar</span><b>'+ZONE[p.zone].ad+'</b></div>'+
+    '<div class="kv"><span>Tapu kaydı</span><b>'+(p.oz?OZ[p.oz].ic+' '+OZ[p.oz].ad:'Temiz')+'</b></div>'+(p.oz?'<div class="note" style="text-align:right">'+OZ[p.oz].acik+'</div>':'')+
+    '<div class="kv"><span>Ödediğin</span><b>'+fmt(c)+'</b></div>'+
+    '<div class="kv"><span>Gerçek değer</span><b>'+fmt(v)+' ('+(r>=1?'+':'')+Math.round((r-1)*100)+'%)</b></div>'+
+    '<button class="btn pri" style="width:100%;margin-top:12px" data-m="close">Tamam</button>');
+}
+function showElection(r){
+  qmodal('<h2>🗳️ Seçim sonucu</h2><p style="font-size:14px;margin:0 0 8px">'+(r.w===0?'<b>Belediye başkanı sen oldun!</b> Belediye sekmesinden karar verebilirsin.':'Yeni belediye başkanı <b>'+OWN[r.w].ad+'</b>.')+'</p>'+pollBars(r.v)+
+    '<div class="note">'+(nextSecim()!==null?'Bir sonraki seçim gün '+nextSecim()+' sonunda.':'Bu son seçimdi; başkan oyun sonuna kadar görevde.')+'</div><button class="btn pri" style="width:100%" data-m="close">Devam</button>');
+}
+function showEnd(){
+  const rows=oyuncular().map((o,i)=>({o,n:net(i)})).sort((a,b)=>b.n-a.n);
+  const win=rows[0].o===OWN[0];
+  qmodal('<h2>'+(win?'🏆 Kazandın!':'Oyun bitti')+'</h2><p>'+MAXGUN+' günün sonunda net değer sıralaması ('+ZOR[st.zor].ad+'):</p>'+
+    rows.map((r,j)=>'<div class="rank"><b>'+(j+1)+'.</b><span class="sw" style="background:'+r.o.renk+'"></span><div class="n"><b>'+r.o.ad+'</b></div><b>'+fmt(r.n)+'</b></div>').join('')+
+    '<div class="acts"><button class="btn" data-m="close">Haritaya bak</button><button class="btn pri" data-m="new">Yeni oyun</button></div>');
+}
+let tt,tq=[],tf=null;
+function toast(m){tq.push(m);if(tf)return;tf=setTimeout(()=>{tf=null;const t=document.getElementById('toast');t.textContent=tq.join('\n');const n=tq.length;tq=[];t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200+n*900)},0)}
+
+/* ---------- kayıt ---------- */
+const SK='parselBlok_v1';
+function save(){try{localStorage.setItem(SK,JSON.stringify(st))}catch(e){}}
+function load(){
+  try{
+    const s=JSON.parse(localStorage.getItem(SK));
+    if(!(s&&Array.isArray(s.ps)&&Array.isArray(s.pl)&&s.ps.length)) return false;
+    // eski sürüm kayıtlarını yeni alanlarla tamamla
+    s.ps.forEach(p=>{if(!p.lv)p.lv=1;if(!(s.v>=4)){p.bil=true;p.oz=null}if(p.bina&&!BLD[p.bina]){p.bina=null;p.lv=1}});
+    s.pl.forEach(pl=>{if(typeof pl.borc!=='number')pl.borc=0});
+    if(!s.qd)s.qd=[]; if(!s.fx)s.fx=[]; if(!s.R)s.R=4; if(!s.soy)s.soy=[]; if(!s.etki)s.etki=[]; if(!s.gid)s.gid=0; if(!s.kamp||s.kamp.length!==s.pl.length)s.kamp=s.pl.map(()=>0); if(s.bk===undefined)s.bk=null; if(typeof s.mp!=='number')s.mp=0;
+    if(!ZOR[s.zor])s.zor='kolay'; if(!s.q)s.q=[]; if(!s.log)s.log=[]; s.q=s.q.filter(a=>QT.some(t=>t.id===a.id));
+    st=s; return true;
+  }catch(e){return false}
+}
+
+if(load()) render(); else { st=null; showStart(false) }
+})();
+</script>
+</body>
+</html>
